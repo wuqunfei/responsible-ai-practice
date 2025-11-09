@@ -1,0 +1,152 @@
+╔════════════════════════════════════════════════════════════════════════════╗
+║                                                                            ║
+║                    🛡️  PII DETECTION DEMO                                  ║
+║                    Quick Start Guide                                       ║
+║                                                                            ║
+╚════════════════════════════════════════════════════════════════════════════╝
+
+📖 THE STORY (30 seconds)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Sarah Martinez lost her luggage on an international flight. Her insurance 
+claim email contains 15+ types of sensitive PII that need protection:
+
+✈️  Travel details   👤 Personal info    📧 Contact details
+💳 Financial data    🏥 Medical info     🔢 Device IDs
+
+We'll compare TWO PII detection systems to see which protects her data better!
+
+
+⚡ QUICK START (2 minutes)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1️⃣  INSTALL DEPENDENCIES
+   
+   pip install -r requirements.txt
+   python -m spacy download en_core_web_lg
+
+
+2️⃣  RUN THE DEMO (Choose one)
+
+   Option A: Interactive Story Demo (5 minutes)
+   python demo.py
+   
+   Option B: Quick Comparison (< 1 minute)
+   python pii_comparison.py
+
+
+3️⃣  VIEW RESULTS
+   
+   📂 Check the results/ folder for:
+   • Comparison report (CSV)
+   • Anonymized email versions
+   • Detailed detection logs
+
+
+📁 WHAT'S INCLUDED
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+README.md                  📖 Complete documentation with story
+demo.py                    🎬 Interactive 5-minute demo with narration
+pii_comparison.py          🔍 Core comparison engine
+sample_email.txt           📧 Sarah's insurance claim email
+presidio_detector.py       🛡️  Microsoft Presidio implementation
+transformer_detector.py    🤖 AI model implementation
+requirements.txt           📦 Python dependencies
+QUICK_START.txt           ⚡ This file
+
+
+🎯 WHAT TO EXPECT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+The demo will:
+
+1. Tell Sarah's story (45 seconds)
+2. Show her email with sensitive data (30 seconds)
+3. Run Presidio detection (1 minute)
+4. Run Transformer detection (1 minute)
+5. Compare results side-by-side (1.5 minutes)
+6. Show recommendations (30 seconds)
+
+TOTAL TIME: ~4.5 minutes
+
+
+📊 EXPECTED RESULTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Presidio will detect:     40-50 PII entities
+Transformer will detect:  30-40 PII entities
+
+Key Findings:
+✅ Presidio: Best for structured data (SSN, credit cards, bank info)
+✅ Transformer: Best for context (names, natural language)
+🏆 Hybrid Approach: Use BOTH for maximum protection!
+
+
+🔧 TROUBLESHOOTING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Problem: "Model not found" error
+Solution: Install spacy model: python -m spacy download en_core_web_lg
+
+Problem: Transformer model download slow
+Solution: This is normal on first run. The model is ~500MB.
+
+Problem: Low GPU memory
+Solution: The code will automatically use CPU if GPU unavailable.
+
+
+💡 TIPS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+• First time? Run demo.py for the full story experience
+• In a hurry? Run pii_comparison.py for quick results
+• Want details? Check README.md for comprehensive docs
+• Need customization? Edit threshold in the scripts (default: 0.5)
+
+
+🎓 LEARNING OBJECTIVES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+After this demo, you'll understand:
+
+✓ What PII is and why it matters
+✓ Two different approaches to PII detection
+✓ Strengths and weaknesses of each approach
+✓ When to use pattern-based vs AI-based detection
+✓ How to implement PII detection in Python
+✓ Real-world use case for data protection
+
+
+📞 NEXT STEPS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Run the demo
+2. Review the results in the results/ folder
+3. Read the detailed README.md
+4. Experiment with different thresholds
+5. Try your own text samples
+6. Consider implementing in your projects
+
+
+🚀 READY?
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Run this command to begin:
+
+    python demo.py
+
+Or for a quick comparison:
+
+    python pii_comparison.py
+
+
+✨ Enjoy the demo and stay safe! ✨
+
+
+═══════════════════════════════════════════════════════════════════════════
+
+Made with ❤️  for Data Privacy Education
+© 2025 - Educational Demo for PII Detection Technologies
+
+═══════════════════════════════════════════════════════════════════════════
