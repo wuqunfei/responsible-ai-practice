@@ -11,6 +11,7 @@ import sys
 # Import custom detectors
 from presidio_detector import PresidioPIIDetector
 from transformer_detector import TransformerPIIDetector
+from azure_open_ai import AzureOpenAIPIIDetector
 
 
 def load_email(filepath='sample_email.txt'):
@@ -54,6 +55,7 @@ def compare_detectors(text, threshold=0.5):
     
     presidio = PresidioPIIDetector()
     transformer = TransformerPIIDetector()
+    azure_openai = AzureOpenAIPIIDetector()
     
     # -------------------------------------------------------------------------
     # PRESIDIO DETECTION
@@ -118,30 +120,63 @@ def compare_detectors(text, threshold=0.5):
         print(f"\n... and {len(transformer_results) - 15} more detections")
     
     # -------------------------------------------------------------------------
+    # AZURE OPENAI DETECTION
+    # -------------------------------------------------------------------------
+    print_header("3. AZURE OPENAI RESULTS", '=')
+
+    azure_openai_results = azure_openai.detect(text)
+    azure_openai_anonymized, _ = azure_openai.anonymize(text)
+    azure_openai_summary = azure_openai.get_summary(azure_openai_results)
+    azure_openai_detailed = azure_openai.get_detailed_results(azure_openai_results)
+
+    print(f"✓ Detection complete!")
+    print(f"\nTotal PII Entities Detected: {len(azure_openai_results)}")
+
+    print("\n📊 PII Types Summary:")
+    print("-" * 60)
+    for pii_type, count in sorted(azure_openai_summary.items(), key=lambda x: -x[1]):
+        bar = '█' * min(count, 30)
+        print(f"  {pii_type:20} : {count:3} {bar}")
+
+    print("\n📝 Sample Detections (First 15):")
+    print("-" * 80)
+    print(f"{'#':<4} {'Type':<20} {'Confidence':<12} {'Detected Text':<40}")
+    print("-" * 80)
+
+    for i, item in enumerate(azure_openai_detailed[:15], 1):
+        text_preview = item['text'][:40]
+        print(f"{i:<4} {item['type']:<20} {item['score']:<12.3f} {text_preview:<40}")
+
+    if len(azure_openai_results) > 15:
+        print(f"\n... and {len(azure_openai_results) - 15} more detections")
+
+    # -------------------------------------------------------------------------
     # SIDE-BY-SIDE COMPARISON
     # -------------------------------------------------------------------------
-    print_header("3. SIDE-BY-SIDE COMPARISON", '=')
+    print_header("4. SIDE-BY-SIDE COMPARISON", '=')
     
     # Create comparison table
-    all_types = sorted(set(presidio_summary.keys()) | set(transformer_summary.keys()))
+    all_types = sorted(set(presidio_summary.keys()) | set(transformer_summary.keys()) | set(azure_openai_summary.keys()))
     
-    print(f"{'PII Type':<25} | {'Presidio':>10} | {'Transformer':>12} | {'Difference':>12}")
-    print("-" * 80)
+    print(f"{'PII Type':<25} | {'Presidio':>10} | {'Transformer':>12} | {'Azure OpenAI':>15} | {'Difference':>12}")
+    print("-" * 95)
     
     for pii_type in all_types:
         p_count = presidio_summary.get(pii_type, 0)
         t_count = transformer_summary.get(pii_type, 0)
-        diff = abs(p_count - t_count)
+        a_count = azure_openai_summary.get(pii_type, 0)
+        diff = max(p_count, t_count, a_count) - min(p_count, t_count, a_count)
         
-        print(f"{pii_type:<25} | {p_count:>10} | {t_count:>12} | {diff:>12}")
+        print(f"{pii_type:<25} | {p_count:>10} | {t_count:>12} | {a_count:>15} | {diff:>12}")
     
-    print("-" * 80)
-    print(f"{'TOTAL':<25} | {len(presidio_results):>10} | {len(transformer_results):>12} | {abs(len(presidio_results) - len(transformer_results)):>12}")
+    print("-" * 95)
+    total_diff = max(len(presidio_results), len(transformer_results), len(azure_openai_results)) - min(len(presidio_results), len(transformer_results), len(azure_openai_results))
+    print(f"{'TOTAL':<25} | {len(presidio_results):>10} | {len(transformer_results):>12} | {len(azure_openai_results):>15} | {total_diff:>12}")
     
     # -------------------------------------------------------------------------
     # ANONYMIZED TEXT SAMPLES
     # -------------------------------------------------------------------------
-    print_header("4. ANONYMIZED TEXT PREVIEW", '=')
+    print_header("5. ANONYMIZED TEXT PREVIEW", '=')
     
     sample_length = 500
     
@@ -156,11 +191,17 @@ def compare_detectors(text, threshold=0.5):
     print(transformer_anonymized[:sample_length])
     if len(transformer_anonymized) > sample_length:
         print("...")
-    
+
+    print("\n📄 Azure OpenAI Anonymized (First 500 chars):")
+    print("-" * 80)
+    print(azure_openai_anonymized[:sample_length])
+    if len(azure_openai_anonymized) > sample_length:
+        print("...")
+
     # -------------------------------------------------------------------------
     # KEY FINDINGS
     # -------------------------------------------------------------------------
-    print_header("5. KEY FINDINGS & RECOMMENDATIONS", '=')
+    print_header("6. KEY FINDINGS & RECOMMENDATIONS", '=')
     
     print("🏆 PRESIDIO STRENGTHS:")
     print("  ✓ More comprehensive entity type coverage")
@@ -174,11 +215,18 @@ def compare_detectors(text, threshold=0.5):
     print("  ✓ More accurate for names and natural language entities")
     print("  ✓ Understands semantic meaning, not just patterns")
     print("  ✓ Generally fewer false positives for person names")
+
+    print("\n🏆 AZURE OPENAI STRENGTHS:")
+    print("  ✓ Excellent at contextual understanding and complex entities")
+    print("  ✓ Can identify a wide range of PII types with high accuracy")
+    print("  ✓ Zero-shot learning capabilities, no model training required")
+    print("  ✓ Good at handling unstructured text")
     
     print("\n💡 RECOMMENDATION:")
-    print("  Use a HYBRID APPROACH combining both detectors for maximum coverage!")
+    print("  Use a HYBRID APPROACH combining all three detectors for maximum coverage!")
     print("  - Presidio for structured data and patterns")
     print("  - Transformer for contextual and semantic understanding")
+    print("  - Azure OpenAI for broad, context-aware detection and zero-shot capabilities")
     
     # Create results directory
     os.makedirs('results', exist_ok=True)
@@ -194,6 +242,9 @@ def compare_detectors(text, threshold=0.5):
     with open('results/anonymized_emails/transformer_anonymized.txt', 'w') as f:
         f.write(transformer_anonymized)
     
+    with open('results/anonymized_emails/azure_openai_anonymized.txt', 'w') as f:
+        f.write(azure_openai_anonymized)
+
     # Save detailed results
     with open('results/presidio_results.txt', 'w') as f:
         f.write(f"Presidio Detection Results\n")
@@ -209,6 +260,13 @@ def compare_detectors(text, threshold=0.5):
         for item in transformer_detailed:
             f.write(f"{item['type']}: {item['text']} (score: {item['score']:.3f})\n")
     
+    with open('results/azure_openai_results.txt', 'w') as f:
+        f.write(f"Azure OpenAI Detection Results\n")
+        f.write(f"{'=' * 80}\n\n")
+        f.write(f"Total detections: {len(azure_openai_results)}\n\n")
+        for item in azure_openai_detailed:
+            f.write(f"{item['type']}: {item['text']} (score: {item['score']:.3f})\n")
+
     # Create comparison CSV
     comparison_data = []
     for pii_type in all_types:
@@ -216,7 +274,8 @@ def compare_detectors(text, threshold=0.5):
             'PII_Type': pii_type,
             'Presidio_Count': presidio_summary.get(pii_type, 0),
             'Transformer_Count': transformer_summary.get(pii_type, 0),
-            'Difference': abs(presidio_summary.get(pii_type, 0) - transformer_summary.get(pii_type, 0))
+            'Azure_OpenAI_Count': azure_openai_summary.get(pii_type, 0),
+            'Difference': max(presidio_summary.get(pii_type, 0), transformer_summary.get(pii_type, 0), azure_openai_summary.get(pii_type, 0)) - min(presidio_summary.get(pii_type, 0), transformer_summary.get(pii_type, 0), azure_openai_summary.get(pii_type, 0))
         })
     
     comparison_df = pd.DataFrame(comparison_data)
@@ -240,6 +299,12 @@ def compare_detectors(text, threshold=0.5):
             'anonymized': transformer_anonymized,
             'summary': transformer_summary,
             'detailed': transformer_detailed
+        },
+        'azure_openai': {
+            'results': azure_openai_results,
+            'anonymized': azure_openai_anonymized,
+            'summary': azure_openai_summary,
+            'detailed': azure_openai_detailed
         }
     }
 
