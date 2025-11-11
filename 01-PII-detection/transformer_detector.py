@@ -5,16 +5,18 @@ Context-aware AI detection using token classification
 
 import re
 from collections import defaultdict
+import os
 
 
 
 class TransformerPIIDetector:
-    def __init__(self, model_name="lakshyakh93/deberta_finetuned_pii"):
+    def __init__(self, model_name="lakshyakh93/deberta_finetuned_pii", local_model_path="models/transformer_pii"):
         """
         Initialize transformer-based PII detector
         
         Args:
             model_name: HuggingFace model identifier
+            local_model_path: Path to save/load the model locally
         """
         self.model_loaded = False
         
@@ -22,13 +24,30 @@ class TransformerPIIDetector:
             from transformers import AutoTokenizer, AutoModelForTokenClassification, pipeline
             import torch
             
+            # Ensure the local model directory exists
+            os.makedirs(local_model_path, exist_ok=True)
+
             self.device = 0 if torch.cuda.is_available() else -1
             
-            print(f"Loading transformer model: {model_name}")
-            print("This may take a minute on first run...")
-            
-            self.tokenizer = AutoTokenizer.from_pretrained(model_name)
-            self.model = AutoModelForTokenClassification.from_pretrained(model_name)
+            print(f"Attempting to load transformer model from: {local_model_path}")
+
+            try:
+                # Try to load from local path
+                self.tokenizer = AutoTokenizer.from_pretrained(local_model_path)
+                self.model = AutoModelForTokenClassification.from_pretrained(local_model_path)
+                print("✓ Model loaded successfully from local path.")
+            except (OSError, ValueError):
+                # If it fails, download from Hugging Face and save locally
+                print(f"Could not load from local path. Downloading from Hugging Face: {model_name}")
+                print("This may take a minute...")
+                self.tokenizer = AutoTokenizer.from_pretrained(model_name)
+                self.model = AutoModelForTokenClassification.from_pretrained(model_name)
+                
+                print(f"Saving model to {local_model_path} for future use.")
+                self.tokenizer.save_pretrained(local_model_path)
+                self.model.save_pretrained(local_model_path)
+                print("✓ Model downloaded and saved locally.")
+
             
             self.pipeline = pipeline(
                 "token-classification",
@@ -40,7 +59,7 @@ class TransformerPIIDetector:
             
             self.model_loaded = True
             device_name = "GPU" if self.device == 0 else "CPU"
-            print(f"✓ Transformer model loaded successfully on {device_name}")
+            print(f"✓ Transformer model ready on {device_name}")
             
         except Exception as e:
             print(f"⚠ Could not load transformer model: {e}")

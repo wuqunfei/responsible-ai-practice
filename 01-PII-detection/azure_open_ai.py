@@ -42,7 +42,7 @@ class AzureOpenAIPIIDetector:
             response = self.client.chat.completions.create(
                 model=self.azure_deployment,
                 messages=[
-                    {"role": "system", "content": "You are an expert in identifying and extracting Personally Identifiable Information (PII) from text. Your response must be only the JSON content, without any markdown formatting or other text."},
+                    {"role": "system", "content": "You are a PII (Personally Identifiable Information) detection assistant. Your response must be only the JSON content, without any markdown formatting or other text."},
                     {"role": "user", "content": prompt}
                 ],
                 temperature=0.0,

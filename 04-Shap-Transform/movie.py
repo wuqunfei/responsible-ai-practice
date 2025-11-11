@@ -17,3 +17,6 @@ explainer = shap.Explainer(model)
 shap_values = explainer(["What a great movie! ... if you have no taste"])
 print(shap_values)
 shap.plots.text(shap_values[0, :, "POSITIVE"])
+
+
+

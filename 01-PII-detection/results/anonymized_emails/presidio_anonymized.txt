@@ -17,13 +17,13 @@ CONTACT INFORMATION:
 Email Address: <EMAIL_ADDRESS>
 Mobile Phone: <PHONE_NUMBER>
 Alternative Phone: <PHONE_NUMBER>
-Home Address: 2847 <LOCATION>, Apartment 12B, <LOCATION>, <LOCATION>, <LOCATION>
+Home Address: 2847 Oakwood Avenue, Apartment 12B, <LOCATION>, <LOCATION> 02134, <LOCATION>
 
 FLIGHT DETAILS:
 ---------------------------
 Flight Number: BA2847
 Date of Travel: <DATE_TIME>, <DATE_TIME>
-Route: Boston Logan International (BOS) to <LOCATION> (LHR)
+Route: Boston Logan International (BOS) to <LOCATION> Heathrow (LHR)
 Booking Reference: TRV2024-8821
 Seat Number: 23A
 Frequent Flyer Number: BA9876543
@@ -32,13 +32,13 @@ LUGGAGE INFORMATION:
 ---------------------------
 Bag Tag Number: BA087654321
 Description: Large black Samsonite hardshell suitcase (28 inch)
-Distinguishing Features: Red ribbon tied to handle, "<PERSON>" name tag
+Distinguishing Features: Red ribbon tied to handle, "S. MARTINEZ" name tag
 Approximate Weight: 23 kg
 Declared Value: $850 USD
 
 PERSONAL IDENTIFICATION FOUND IN BAG:
 ---------------------------
-- Driver's License Number: <US_DRIVER_LICENSE>-<DATE_TIME> (<LOCATION>)
+- Driver's License Number: <US_DRIVER_LICENSE>-4567-8901-234 (<LOCATION>)
 - Social Security Card: XXX-XX-6789 (last 4 digits)
 - Credit Cards: Visa ending in 4523, Mastercard ending in 8901
 - Medical Insurance Card: BlueCross BlueShield - Member ID: BCB987654321
@@ -55,7 +55,7 @@ BANK DETAILS FOR REIMBURSEMENT:
 Bank Name: First National Bank of Boston
 Account Holder: <PERSON>
 Account Number: <UK_NHS>
-Routing Number: 011000015
+Routing Number: <AU_TFN>
 Account Type: Checking
 
 EMERGENCY CONTACT:
@@ -77,7 +77,7 @@ CONTENTS OF LOST BAG (Partial List):
 HOTEL INFORMATION (For Delivery):
 ---------------------------
 Hotel Name: The Grand London Hotel
-Address: 45 Park Lane, Mayfair, London W1K 1PN, <LOCATION>
+Address: 45 <LOCATION>, <LOCATION>, London W1K 1PN, <LOCATION>
 Room Number: 847
 Check-in Date: <DATE_TIME>, <DATE_TIME>
 Check-out Date: <DATE_TIME>, <DATE_TIME>
@@ -95,7 +95,7 @@ I would appreciate:
 Please confirm receipt of this claim within <DATE_TIME> and provide a claim reference number.
 
 You can reach me at any time via:
-- Mobile (preferred): <PHONE_NUMBER>
+- <LOCATION> (preferred): <PHONE_NUMBER>
 - Email: <EMAIL_ADDRESS>
 - Hotel phone: <PHONE_NUMBER> (Room 847)
 
@@ -108,6 +108,6 @@ Frequent Flyer #: BA9876543
 Booking Reference: TRV2024-8821
 
 ---
-<PERSON> sent from: <EMAIL_ADDRESS>
+Email sent from: <EMAIL_ADDRESS>
 IP Address: <IP_ADDRESS>
 Sent: <DATE_TIME> at <DATE_TIME>

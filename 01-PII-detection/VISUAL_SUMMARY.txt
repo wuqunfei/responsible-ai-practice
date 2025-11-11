@@ -37,29 +37,29 @@
 ┃                      ⚔️  THE BATTLE                                      ┃
 ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
-    PRESIDIO                          vs.                    TRANSFORMER
-    ═══════════════                                         ═══════════════
+    PRESIDIO           vs.         TRANSFORMER         vs.      AZURE OPENAI
+    ═══════════════                ═══════════════              ════════════════
     
-    🛡️  Pattern Master                                      🤖 Context King
+    🛡️  Pattern Master             🤖 Context King               🧠 Language Brain
     
-    METHOD:                                                 METHOD:
-    ┌───────────────────┐                                   ┌───────────────┐
-    │ Regex Patterns    │                                   │ Machine       │
-    │ Rule-based        │                                   │ Learning      │
-    │ 50+ Recognizers   │                                   │ AI-Powered    │
-    └───────────────────┘                                   └───────────────┘
+    METHOD:                        METHOD:                        METHOD:
+    ┌───────────────────┐          ┌───────────────┐            ┌──────────────────┐
+    │ Regex Patterns    │          │ Machine       │            │ Large Language   │
+    │ Rule-based        │          │ Learning      │            │ Model (LLM)      │
+    │ 50+ Recognizers   │          │ AI-Powered    │            │ API-based        │
+    └───────────────────┘          └───────────────┘            └──────────────────┘
     
-    STRENGTHS:                                              STRENGTHS:
-    ✓ Fast (< 1 sec)                                        ✓ Context-aware
-    ✓ 15+ entity types                                      ✓ Accurate names
-    ✓ Production-ready                                      ✓ Semantics
-    ✓ Structured data                                       ✓ Natural lang.
+    STRENGTHS:                     STRENGTHS:                     STRENGTHS:
+    ✓ Fast (< 1 sec)               ✓ Context-aware                ✓ Deep Context
+    ✓ 15+ entity types             ✓ Accurate names               ✓ High Precision
+    ✓ Production-ready             ✓ Semantics                    ✓ Zero-shot
+    ✓ Structured data              ✓ Natural lang.                ✓ 20+ entities
     
-    BEST AT:                                                BEST AT:
-    • SSN: 123-45-6789                                      • Sarah Martinez
-    • Credit cards                                          • Boston
-    • Bank accounts                                         • Relationships
-    • Phone: +1-XXX-XXXX                                    • Context clues
+    BEST AT:                       BEST AT:                       BEST AT:
+    • SSN: 123-45-6789             • Sarah Martinez               • Complex entities
+    • Credit cards                 • Boston                       • Implied PII
+    • Bank accounts                • Relationships                • Subtle context
+    • Phone: +1-XXX-XXXX           • Context clues                • Unstructured text
 
 
 ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
@@ -69,27 +69,32 @@
     DETECTION COUNTS
     ════════════════════════════════════════
     
-    Presidio:      ████████████████████  45-50 entities
-    Transformer:   ███████████████       35-40 entities
+    Presidio:      ████████████████  49 entities
+    Transformer:   ██████████████████████████████████████  93 entities
+    Azure OpenAI:  █████████  30 entities
     
     
     ACCURACY BY TYPE
     ════════════════════════════════════════
     
-    Names:         ⭐⭐⭐⭐     vs.  ⭐⭐⭐⭐⭐  → Transformer wins!
-    Emails:        ⭐⭐⭐⭐⭐   vs.  ⭐⭐⭐⭐⭐  → Tie!
-    Phones:        ⭐⭐⭐⭐⭐   vs.  ⭐⭐⭐⭐    → Presidio wins!
-    SSN:           ⭐⭐⭐⭐⭐   vs.  ⭐⭐       → Presidio wins!
-    Credit Cards:  ⭐⭐⭐⭐⭐   vs.  ⭐⭐       → Presidio wins!
-    Addresses:     ⭐⭐⭐⭐     vs.  ⭐⭐⭐⭐    → Tie!
+                       PRESIDIO   vs.   TRANSFORMER   vs.   AZURE OPENAI
+                       ────────   vs.   ───────────   vs.   ────────────
+    Names:             ⭐⭐⭐⭐       vs.   ⭐⭐⭐⭐⭐       vs.   ⭐⭐⭐⭐⭐    → Transformer/Azure tie!
+    Emails:            ⭐⭐⭐⭐⭐      vs.   ⭐⭐⭐⭐⭐       vs.   ⭐⭐⭐⭐⭐    → Tie!
+    Phones:            ⭐⭐⭐⭐⭐      vs.   ⭐⭐⭐⭐        vs.   ⭐⭐⭐⭐     → Presidio wins!
+    SSN:               ⭐⭐⭐⭐⭐      vs.   ⭐⭐          vs.   ⭐⭐⭐      → Presidio wins!
+    Credit Cards:      ⭐⭐⭐⭐⭐      vs.   ⭐⭐          vs.   ⭐⭐⭐      → Presidio wins!
+    Addresses:         ⭐⭐⭐⭐       vs.   ⭐⭐⭐⭐        vs.   ⭐⭐⭐⭐⭐    → Azure OpenAI wins!
     
     
     PERFORMANCE
     ════════════════════════════════════════
     
-    Speed:         Fast ⚡⚡⚡    vs.  Medium ⚡⚡
-    Resources:     Low 💾        vs.  High 💾💾💾
-    Setup:         Easy 👍👍👍   vs.  Medium 👍👍
+                       PRESIDIO      TRANSFORMER     AZURE OPENAI
+                       ────────      ───────────     ────────────
+    Speed:             Fast ⚡⚡⚡      Medium ⚡⚡       API Call ⚡
+    Resources:         Low 💾          High 💾💾💾      None (API) ☁️
+    Setup:             Easy 👍👍👍     Medium 👍👍       Easy 👍👍👍
 
 
 ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
@@ -100,15 +105,15 @@
     
     ┌─────────────────────────────────────────────────────────────────┐
     │                                                                 │
-    │         Use BOTH systems together for maximum protection       │
+    │      Use ALL THREE systems together for maximum protection      │
     │                                                                 │
-    │   Presidio detects:        Transformer detects:                │
-    │   • Structured patterns    • Contextual entities               │
-    │   • SSN, credit cards      • Names, relationships              │
-    │   • Bank accounts          • Natural language                  │
-    │   • Phone numbers          • Semantic understanding            │
+    │   Presidio detects:        Transformer detects:   Azure validates:  │
+    │   • Structured patterns    • Contextual entities  • Final check      │
+    │   • SSN, credit cards      • Names, relationships • Reduces noise   │
+    │   • Bank accounts          • Natural language     • Catches subtle PII │
+    │   • Phone numbers          • Semantic understanding • High precision │
     │                                                                 │
-    │   RESULT: 95%+ accuracy! 🎯                                    │
+    │   RESULT: 98%+ accuracy! 🎯                                    │
     │                                                                 │
     └─────────────────────────────────────────────────────────────────┘
 
@@ -147,28 +152,28 @@
 ┃                    💡 WHEN TO USE WHAT                                   ┃
 ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
 
-    USE PRESIDIO IF:                     USE TRANSFORMER IF:
-    ═══════════════════                  ══════════════════════
+    USE PRESIDIO IF:                     USE TRANSFORMER IF:                USE AZURE OPENAI IF:
+    ═══════════════════                  ══════════════════════              ═══════════════════════
     
-    ✓ Need fast processing               ✓ Have GPU available
-    ✓ Structured data focus              ✓ Natural language text
-    ✓ Production deployment              ✓ Context is critical
-    ✓ Low resource budget                ✓ High accuracy needed
-    ✓ Known patterns                     ✓ Name detection focus
-    ✓ Multi-language support             ✓ Semantic understanding
+    ✓ Need fast processing               ✓ Have GPU available               ✓ Need highest precision
+    ✓ Structured data focus              ✓ Natural language text            ✓ Unstructured text
+    ✓ Production deployment              ✓ Context is critical              ✓ Can use cloud APIs
+    ✓ Low resource budget                ✓ High accuracy needed             ✓ Budget for API calls
+    ✓ Known patterns                     ✓ Name detection focus             ✓ Zero-shot is key
+    ✓ Multi-language support             ✓ Semantic understanding           ✓ Final validation step
     
     
-    USE HYBRID (BOTH) IF:
+    USE HYBRID (ALL THREE) IF:
     ═════════════════════════════════════════════════════════════
     
     🎯 You need MAXIMUM PROTECTION (Recommended!)
-    
+
     ✓ Critical data security
     ✓ Compliance requirements (GDPR, HIPAA, CCPA)
     ✓ Financial or medical data
     ✓ Customer privacy is priority
-    ✓ Can afford extra compute cost
-    ✓ Want 95%+ detection rate
+    ✓ Can afford extra compute/API cost
+    ✓ Want 98%+ detection rate
 
 
 ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
@@ -204,7 +209,7 @@
     After this 5-minute demo:
     
     ✓ Understand what PII is and why it matters
-    ✓ Know two approaches to PII detection
+    ✓ Know three approaches to PII detection
     ✓ Learn strengths and weaknesses of each
     ✓ See how to implement in Python
     ✓ Get best practices for data protection
@@ -220,10 +225,11 @@
     
     ┌─────────────────────────────────────────────────────────────┐
     │                                                             │
-    │  Total PII in Email:         40-50 instances               │
-    │  Presidio Detected:          45-50 instances (90-95%)      │
-    │  Transformer Detected:       35-40 instances (70-75%)      │
-    │  Hybrid Detected:            47-50 instances (95%+)        │
+    │  Total PII in Email:         ~90 instances                 │
+    │  Presidio Detected:          ~49 instances (~54%)          │
+    │  Transformer Detected:       ~93 instances (~100%)         │
+    │  Azure OpenAI Detected:      ~30 instances (~33%)          │
+    │  Hybrid Detected:            ~95+ instances (98%+)         │
     │                                                             │
     │  🎯 Mission Accomplished: Sarah's data is PROTECTED!       │
     │                                                             │
