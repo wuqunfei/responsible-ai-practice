@@ -411,7 +411,7 @@ axes[1, 1].set_title('Fairness-Accuracy Trade-off')
 axes[1, 1].grid(alpha=0.3)
 
 plt.tight_layout()
-plt.savefig('/mnt/user-data/outputs/insurance_bias_mitigation.png', dpi=300, bbox_inches='tight')
+plt.savefig('insurance_bias_mitigation.png', dpi=300, bbox_inches='tight')
 print("Visualization saved!")
 
 # ==========================================
