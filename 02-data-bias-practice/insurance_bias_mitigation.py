@@ -173,6 +173,27 @@ print(f"Equalized Odds Difference: {eo_diff_baseline:.4f}")
 print(f"  (Ideal = 0, measures difference in error rates)")
 
 # ==========================================
+# SARAH'S BIAS DETECTION CODE
+# ==========================================
+
+print("\n" + "=" * 70)
+print("SARAH'S BIAS DETECTION CODE")
+print("=" * 70)
+
+# Sarah's bias detection code 
+from fairlearn.metrics import demographic_parity_difference 
+
+bias_score = demographic_parity_difference( 
+    y_true=y_test, 
+    y_pred=y_pred_baseline, 
+    sensitive_features=sf_test 
+) 
+
+print(f"Bias Score: {bias_score:.4f}") 
+print("# Result: Anything >0.05 is concerning!")
+print(f"⚠️  BIAS ALERT: This bias score of {bias_score:.3f} indicates significant gender bias!")
+
+# ==========================================
 # 5. BIAS MITIGATION - METHOD 1: Reductions
 # ==========================================
 
