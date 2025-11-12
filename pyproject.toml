@@ -27,6 +27,8 @@ dependencies = [
     "dotenv>=0.9.9",
     "pip>=25.3",
     "xgboost>=3.1.1",
+    "langgraph>=1.0.3",
+    "langfuse>=3.9.3",
 ]
 
 [project.optional-dependencies]

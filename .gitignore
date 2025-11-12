@@ -71,5 +71,6 @@ coverage.xml
 # Environment variables
 .env
 
-# Local configuration files
-config_local.py
+.venv
+01-PII-detection/models
+04-Shap-Transform/models
