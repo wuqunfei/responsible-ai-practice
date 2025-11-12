@@ -1,0 +1,25 @@
+{
+  "timestamp": "2025-11-12T19:39:25.677300",
+  "total_claims": 3,
+  "approved": 0,
+  "rejected": 3,
+  "human_review_needed": 3,
+  "average_confidence": 0.5289724469184875,
+  "claims": [
+    {
+      "claim_id": "CLM-2024-001",
+      "decision": "REJECTED - PENDING HUMAN REVIEW",
+      "confidence": 0.5331776738166809
+    },
+    {
+      "claim_id": "CLM-2024-002",
+      "decision": "REJECTED - PENDING HUMAN REVIEW",
+      "confidence": 0.5262433886528015
+    },
+    {
+      "claim_id": "CLM-2024-003",
+      "decision": "REJECTED - PENDING HUMAN REVIEW",
+      "confidence": 0.5274962782859802
+    }
+  ]
+}

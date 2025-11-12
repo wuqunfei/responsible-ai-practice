@@ -1,0 +1,25 @@
+{
+  "timestamp": "2025-11-12T16:41:54.927427",
+  "total_claims": 3,
+  "approved": 2,
+  "rejected": 1,
+  "human_review_needed": 0,
+  "average_confidence": 0.8384017586327213,
+  "claims": [
+    {
+      "claim_id": "CLM-2024-001",
+      "decision": "APPROVED",
+      "confidence": 0.9
+    },
+    {
+      "claim_id": "CLM-2024-002",
+      "decision": "APPROVED",
+      "confidence": 0.8177419997864576
+    },
+    {
+      "claim_id": "CLM-2024-003",
+      "decision": "REJECTED",
+      "confidence": 0.7974632761117061
+    }
+  ]
+}

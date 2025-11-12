@@ -1,0 +1,20 @@
+{
+  "claim_id": "CLM-2024-002",
+  "prediction": "APPROVED",
+  "confidence": 0.8177419997864576,
+  "requires_human_review": false,
+  "reasoning": "Decision: APPROVED\nConfidence: 81.8%\n\nKey factors influencing this decision:\n  \u2022 'accident' (impact: 0.200, supporting approval)\n  \u2022 'hospital' (impact: 0.150, supporting approval)",
+  "timestamp": "2025-11-12T16:41:54.926461",
+  "top_features": [
+    {
+      "feature": "accident",
+      "shap_value": 0.2,
+      "impact": "positive"
+    },
+    {
+      "feature": "hospital",
+      "shap_value": 0.15,
+      "impact": "positive"
+    }
+  ]
+}
