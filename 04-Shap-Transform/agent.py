@@ -1,11 +1,12 @@
 """
-LangGraph Agent for Insurance Claim Processing
+LangGraph Agent for Insurance Claim Processing with GPT-2
 """
 from typing import TypedDict, Annotated, Literal
 import operator
 from langgraph.graph import StateGraph, END
-from claim_classifier import QwenClaimClassifier
+from claim_classifier import GPT2ClaimClassifier
 import json
+import os
 
 
 class ClaimState(TypedDict):
@@ -29,9 +30,9 @@ class ClaimProcessingAgent:
         
         Args:
             confidence_threshold: Minimum confidence for auto-approval
-            use_shap: Whether to use SHAP (slower) or simple explanations (faster)
+            use_shap: Whether to use SHAP (slower, more accurate) or simple explanations (faster)
         """
-        self.classifier = QwenClaimClassifier()
+        self.classifier = GPT2ClaimClassifier()
         self.confidence_threshold = confidence_threshold
         self.use_shap = use_shap
         self.workflow = self._build_workflow()
@@ -93,9 +94,10 @@ Policy Duration: {claim_data.get('policy_duration_months', 0)} months
         return state
 
     def classify_claim(self, state: ClaimState) -> ClaimState:
-        """Run classification with the model"""
+        """Run classification with the GPT-2 model"""
         claim_text = state['claim_text']
 
+        print("  Running GPT-2 classification...")
         # Get prediction
         probs = self.classifier.predict(claim_text)
         prediction = "APPROVED" if probs[1] > 0.5 else "REJECTED"
@@ -117,12 +119,14 @@ Policy Duration: {claim_data.get('policy_duration_months', 0)} months
 
         # Get explanation
         if self.use_shap:
+            print("  Using SHAP for detailed explanation...")
             try:
-                explanation = self.classifier.get_shap_explanation(claim_text)
+                explanation = self.classifier.get_shap_explanation(claim_text, num_samples=100)
             except Exception as e:
-                print(f"SHAP failed, using simple explanation: {e}")
+                print(f"  Warning: SHAP failed, using simple explanation: {e}")
                 explanation = self.classifier.get_simple_explanation(claim_text)
         else:
+            print("  Using rule-based explanation (fast mode)...")
             explanation = self.classifier.get_simple_explanation(claim_text)
 
         state['shap_explanation'] = explanation
@@ -133,15 +137,23 @@ Policy Duration: {claim_data.get('policy_duration_months', 0)} months
         reasoning_parts = [
             f"Decision: {state['prediction']}",
             f"Confidence: {state['confidence']:.1%}",
+            f"Explanation Method: {explanation.get('method', 'unknown')}",
             "",
             "Key factors influencing this decision:"
         ]
 
-        for feature in top_features[:5]:
+        for i, feature in enumerate(top_features[:8], 1):
             impact = "supporting approval" if feature['shap_value'] > 0 else "supporting rejection"
             reasoning_parts.append(
-                f"  • '{feature['feature']}' (impact: {abs(feature['shap_value']):.3f}, {impact})"
+                f"  {i}. '{feature['feature']}' (impact: {abs(feature['shap_value']):.3f}, {impact})"
             )
+
+        # Add visualization info if available
+        if explanation.get('html_path'):
+            reasoning_parts.append("")
+            reasoning_parts.append(f"📊 SHAP visualization saved to: {explanation['html_path']}")
+        if explanation.get('image_path'):
+            reasoning_parts.append(f"📈 SHAP chart saved to: {explanation['image_path']}")
 
         reasoning = "\n".join(reasoning_parts)
         state['decision_reasoning'] = reasoning
@@ -168,7 +180,7 @@ Policy Duration: {claim_data.get('policy_duration_months', 0)} months
         })
         state['prediction'] = f"{state['prediction']} - PENDING HUMAN REVIEW"
 
-        print(f"⚠️ Flagged for human review (confidence: {state['confidence']:.1%})")
+        print(f"⚠️  Flagged for human review (confidence: {state['confidence']:.1%})")
         return state
 
     def finalize_decision(self, state: ClaimState) -> ClaimState:
@@ -192,9 +204,9 @@ Policy Duration: {claim_data.get('policy_duration_months', 0)} months
         Returns:
             Final state with decision and explanation
         """
-        print("\n" + "=" * 60)
-        print(f"Processing Claim: {claim_data.get('claim_id', 'Unknown')}")
-        print("=" * 60)
+        print("\n" + "=" * 70)
+        print(f"🔍 Processing Claim: {claim_data.get('claim_id', 'Unknown')}")
+        print("=" * 70)
 
         initial_state = {
             'claim_data': claim_data,
@@ -209,15 +221,21 @@ Policy Duration: {claim_data.get('policy_duration_months', 0)} months
 
         result = self.workflow.invoke(initial_state)
 
-        print("=" * 60)
-        print("Processing complete!")
-        print("=" * 60 + "\n")
+        print("=" * 70)
+        print("✅ Processing complete!")
+        print("=" * 70 + "\n")
 
         return result
 
 
-def create_agent(confidence_threshold: float = 0.7, use_shap: bool = False) -> ClaimProcessingAgent:
-    """Factory function to create an agent"""
+def create_agent(confidence_threshold: float = 0.7, use_shap: bool = True) -> ClaimProcessingAgent:
+    """
+    Factory function to create an agent.
+    
+    Args:
+        confidence_threshold: Minimum confidence for auto-approval (default: 0.7)
+        use_shap: Use SHAP explanations (slower, more accurate) vs rule-based (faster)
+    """
     return ClaimProcessingAgent(
         confidence_threshold=confidence_threshold,
         use_shap=use_shap
@@ -226,10 +244,16 @@ def create_agent(confidence_threshold: float = 0.7, use_shap: bool = False) -> C
 
 if __name__ == "__main__":
     # Test the agent
-    agent = create_agent(confidence_threshold=0.7, use_shap=False)
+    print("="*70)
+    print("Testing Insurance Claim Agent with GPT-2")
+    print("="*70)
+    
+    os.makedirs('outputs', exist_ok=True)
+    
+    agent = create_agent(confidence_threshold=0.7, use_shap=True)
 
     test_claim = {
-        'claim_id': 'CLM-2024-001',
+        'claim_id': 'CLM-2024-TEST',
         'policy_type': 'Health Insurance',
         'amount': 15000,
         'description': 'Emergency surgery for appendicitis with 3-day hospital stay',
@@ -240,6 +264,10 @@ if __name__ == "__main__":
 
     result = agent.process_claim(test_claim)
 
-    print(f"\nFinal Decision: {result['prediction']}")
+    print(f"\n{'='*70}")
+    print("FINAL RESULTS")
+    print(f"{'='*70}")
+    print(f"Decision: {result['prediction']}")
     print(f"Confidence: {result['confidence']:.1%}")
     print(f"Requires Review: {result['requires_human_review']}")
+    print(f"\n{result['decision_reasoning']}")
