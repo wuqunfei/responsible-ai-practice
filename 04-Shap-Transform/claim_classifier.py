@@ -18,7 +18,7 @@ class GPT2ClaimClassifier:
     GPT-2-based classifier for insurance claim approval/rejection with SHAP explanations.
     """
     
-    def __init__(self, model_name: str = "gpt2"):
+    def __init__(self, model_name: str = "gpt2", cache_dir: str = "model_cache"):
         """
         Initialize the classifier with GPT-2 model.
         
@@ -27,12 +27,25 @@ class GPT2ClaimClassifier:
         - "gpt2-medium" (355M params) - Balanced
         - "gpt2-large" (774M params) - Better accuracy
         - "gpt2-xl" (1.5B params) - Best accuracy
+        
+        Args:
+            model_name: Name of the GPT-2 model to use.
+            cache_dir: Directory to cache the downloaded model.
         """
         print(f"Loading model: {model_name}...")
         print("This may take a moment for the first run...")
         
-        self.tokenizer = GPT2Tokenizer.from_pretrained(model_name)
-        self.model = GPT2LMHeadModel.from_pretrained(model_name)
+        # Ensure cache directory exists
+        os.makedirs(cache_dir, exist_ok=True)
+        
+        try:
+            self.tokenizer = GPT2Tokenizer.from_pretrained(model_name, cache_dir=cache_dir)
+            self.model = GPT2LMHeadModel.from_pretrained(model_name, cache_dir=cache_dir)
+        except Exception as e:
+            print(f"Error loading model from cache: {e}")
+            print("Attempting to download model again...")
+            self.tokenizer = GPT2Tokenizer.from_pretrained(model_name, cache_dir=cache_dir, force_download=True)
+            self.model = GPT2LMHeadModel.from_pretrained(model_name, cache_dir=cache_dir, force_download=True)
         
         # Set pad token (GPT-2 doesn't have one by default)
         self.tokenizer.pad_token = self.tokenizer.eos_token
@@ -216,12 +229,13 @@ Decision: """
         
         return np.array(results)
     
-    def get_shap_explanation(self, text: str, num_samples: int = 100) -> Dict:
+    def get_shap_explanation(self, text: str, claim_id: str, num_samples: int = 100) -> Dict:
         """
         Generate SHAP explanations for the prediction with visualization export.
         
         Args:
             text: Input claim text
+            claim_id: Unique identifier for the claim (e.g., 'CLM-2024-001')
             num_samples: Number of samples for SHAP (lower = faster)
             
         Returns:
@@ -230,7 +244,8 @@ Decision: """
         print("Generating SHAP explanation (this may take 1-2 minutes)...")
         
         # Create output directory
-        os.makedirs('outputs', exist_ok=True)
+        output_dir = 'outputs'
+        os.makedirs(output_dir, exist_ok=True)
         
         # Create a partition explainer for text
         explainer = shap.Explainer(
@@ -246,13 +261,13 @@ Decision: """
         html_output = shap.plots.text(shap_values[0], display=False)
         
         # Save HTML
-        html_path = 'outputs/shap_explanation.html'
+        html_path = os.path.join(output_dir, f'shap_explanation_{claim_id}.html')
         with open(html_path, 'w', encoding='utf-8') as f:
             f.write(f"""<!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8">
-    <title>SHAP Explanation - Insurance Claim</title>
+    <title>SHAP Explanation - {claim_id}</title>
     <style>
         body {{
             font-family: Arial, sans-serif;
@@ -274,7 +289,7 @@ Decision: """
 </head>
 <body>
     <div class="container">
-        <h1>SHAP Explanation for Insurance Claim</h1>
+        <h1>SHAP Explanation for {claim_id}</h1>
         <p><strong>Generated:</strong> {__import__('datetime').datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</p>
         <div id="shap-plot">
             {html_output.html() if hasattr(html_output, 'html') else str(html_output)}
@@ -309,13 +324,13 @@ Decision: """
             ax.set_yticks(range(len(top_words)))
             ax.set_yticklabels(top_words)
             ax.set_xlabel('SHAP Value (Impact on Approval)', fontsize=12)
-            ax.set_title('Top Features Influencing Claim Decision', fontsize=14, fontweight='bold')
+            ax.set_title(f'Top Features Influencing Decision for {claim_id}', fontsize=14, fontweight='bold')
             ax.axvline(x=0, color='black', linestyle='-', linewidth=0.8)
             ax.grid(axis='x', alpha=0.3)
             
             plt.tight_layout()
             
-            img_path = 'outputs/shap_explanation.png'
+            img_path = os.path.join(output_dir, f'shap_explanation_{claim_id}.png')
             plt.savefig(img_path, dpi=300, bbox_inches='tight')
             plt.close()
             

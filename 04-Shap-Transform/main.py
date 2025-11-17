@@ -6,6 +6,7 @@ import json
 from agent import create_agent
 from datetime import datetime
 import os
+from claim_classifier import GPT2ClaimClassifier
 
 
 def print_section(title: str):
@@ -47,150 +48,85 @@ def save_result(result: dict, filename: str):
 
 
 def main():
-    """Run the demo"""
-    print_section("Insurance Claim AI Agent with GPT-2 & SHAP")
+    # Get the directory of the script
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    claims_dir = os.path.join(script_dir, 'claims')
+    output_dir = os.path.join(script_dir, 'outputs')
+    os.makedirs(output_dir, exist_ok=True)
+
+    # Initialize the classifier with caching
+    print("\n📦 Initializing GPT-2 Claim Classifier...")
+    classifier = GPT2ClaimClassifier(model_name="gpt2", cache_dir=os.path.join(script_dir, "cached_models"))
     
-    print("\nInitializing agent...")
-    print("- Model: GPT-2 (124M parameters)")
-    print("- Framework: LangGraph")
-    print("- Explainability: SHAP + Rule-based")
-    print("- Confidence Threshold: 70%")
-    print("- Visualization: HTML + PNG exports")
-    
-    # Create output directory
-    os.makedirs('outputs', exist_ok=True)
-    
-    # Create agent with SHAP enabled
-    print("\nNote: SHAP analysis may take 1-2 minutes per claim for detailed explanations")
-    use_shap_choice = input("Use SHAP for detailed explanations? (y/n, default=y): ").strip().lower()
-    use_shap = use_shap_choice != 'n'
-    
-    agent = create_agent(confidence_threshold=0.7, use_shap=use_shap)
-    
-    # Define test claims
-    test_claims = [
-        {
-            'claim_id': 'CLM-2024-001',
-            'policy_type': 'Health Insurance',
-            'amount': 15000,
-            'description': 'Emergency surgery for appendicitis with 3-day hospital stay',
-            'medical_reports': 'Confirmed diagnosis by Dr. Smith, emergency procedure was necessary',
-            'previous_claims': 2,
-            'policy_duration_months': 24
-        },
-        {
-            'claim_id': 'CLM-2024-002',
-            'policy_type': 'Auto Insurance',
-            'amount': 8500,
-            'description': 'Vehicle accident resulting in significant damage to front bumper',
-            'medical_reports': 'Minor injuries treated at hospital emergency room',
-            'previous_claims': 0,
-            'policy_duration_months': 36
-        },
-        {
-            'claim_id': 'CLM-2024-003',
-            'policy_type': 'Health Insurance',
-            'amount': 250000,
-            'description': 'Elective cosmetic surgery for facial reconstruction',
-            'medical_reports': 'Non-emergency procedure, patient request, not medically necessary',
-            'previous_claims': 5,
-            'policy_duration_months': 6
+    # --- Get Claims to Process ---
+    claim_files = sorted([f for f in os.listdir(claims_dir) if f.endswith('.json')])
+    if not claim_files:
+        print(f"❌ No claim files found in {claims_dir}.")
+        return
+
+    print(f"Found {len(claim_files)} claims to process: {claim_files}")
+
+    # --- Process Each Claim ---
+    all_results = []
+    for i, file_name in enumerate(claim_files):
+        claim_id = file_name.replace('.json', '')
+        print("="*80)
+        print(f"Processing Claim {i+1}/{len(claim_files)}: {claim_id}")
+        print("="*80)
+
+        with open(os.path.join(claims_dir, file_name), 'r') as f:
+            claim_data = json.load(f)
+        
+        claim_text = claim_data['claim_details']
+
+        # --- 1. Prediction ---
+        print("\n1️⃣ Running prediction...")
+        probabilities = classifier.predict(claim_text)
+        decision = "APPROVED" if probabilities[1] > 0.5 else "REJECTED"
+        confidence = probabilities[1] if decision == "APPROVED" else 1 - probabilities[1]
+        print(f"   → Decision: {decision} (Confidence: {confidence:.1%})")
+
+        # --- 2. SHAP Explanation ---
+        print("\n2️⃣ Generating SHAP explanation...")
+        explanation = classifier.get_shap_explanation(
+            claim_text, 
+            claim_id=claim_id, 
+            num_samples=100  # Higher samples for better accuracy
+        )
+
+        # --- 3. Store Results ---
+        result = {
+            "claim_id": claim_id,
+            "decision": decision,
+            "confidence": confidence,
+            "probabilities": {
+                "approve": probabilities[1],
+                "reject": probabilities[0]
+            },
+            "explanation": explanation
         }
-    ]
-    
-    results = []
-    
-    # Process each claim
-    for i, claim in enumerate(test_claims, 1):
-        print_section(f"Claim {i}/{len(test_claims)}: {claim['claim_id']}")
-        
-        result = agent.process_claim(claim)
-        results.append(result)
-        
-        print_result(result)
-        
+        all_results.append(result)
+
         # Save individual result
-        save_result(result, f"outputs/result_{claim['claim_id']}.json")
-    
-    # Summary
-    print_section("Processing Summary")
-    
-    approved = sum(1 for r in results if 'APPROVED' in r['prediction'] and 'PENDING' not in r['prediction'])
-    rejected = sum(1 for r in results if 'REJECTED' in r['prediction'] and 'PENDING' not in r['prediction'])
-    review_needed = sum(1 for r in results if r['requires_human_review'])
-    
-    print(f"\nTotal Claims Processed: {len(results)}")
-    print(f"  ✓ Approved: {approved}")
-    print(f"  ✗ Rejected: {rejected}")
-    print(f"  ⚠  Human Review Required: {review_needed}")
-    
-    avg_confidence = sum(r['confidence'] for r in results) / len(results)
-    print(f"\nAverage Confidence: {avg_confidence:.1%}")
-    
-    # List generated visualization files
-    print(f"\n📊 Generated Visualizations:")
-    viz_files = []
-    for r in results:
-        html_path = r['shap_explanation'].get('html_path')
-        img_path = r['shap_explanation'].get('image_path')
-        if html_path:
-            viz_files.append(html_path)
-        if img_path:
-            viz_files.append(img_path)
-    
-    if viz_files:
-        for f in set(viz_files):  # Remove duplicates
-            if os.path.exists(f):
-                print(f"  • {f}")
-    else:
-        print("  (No SHAP visualizations generated - rule-based mode used)")
-    
-    # Save summary
-    summary = {
-        'timestamp': datetime.now().isoformat(),
-        'model': 'GPT-2 (124M parameters)',
-        'explanation_method': 'SHAP' if use_shap else 'Rule-based',
-        'total_claims': len(results),
-        'approved': approved,
-        'rejected': rejected,
-        'human_review_needed': review_needed,
-        'average_confidence': avg_confidence,
-        'claims': [
-            {
-                'claim_id': r['claim_data']['claim_id'],
-                'decision': r['prediction'],
-                'confidence': r['confidence'],
-                'visualization_files': {
-                    'html': r['shap_explanation'].get('html_path'),
-                    'image': r['shap_explanation'].get('image_path')
-                }
-            }
-            for r in results
-        ]
+        output_filename = os.path.join(output_dir, f"summary_{claim_id}.json")
+        with open(output_filename, 'w') as f:
+            json.dump(result, f, indent=4)
+        print(f"\n💾 Individual result saved to {output_filename}")
+
+    # --- Final Summary ---
+    print("="*80)
+    print("\n🏁 All claims processed. Generating final summary...")
+    summary_data = {
+        "total_claims_processed": len(all_results),
+        "processed_at": __import__('datetime').datetime.now().isoformat(),
+        "results": all_results
     }
+
+    summary_filename = os.path.join(output_dir, "summary_report.json")
+    with open(summary_filename, 'w') as f:
+        json.dump(summary_data, f, indent=4)
     
-    with open('outputs/summary.json', 'w') as f:
-        json.dump(summary, f, indent=2)
-    
-    print("\n✓ Summary saved to: outputs/summary.json")
-    
-    print_section("Demo Complete!")
-    print("\nNext steps:")
-    print("  1. Check the 'outputs' folder for:")
-    print("     - Individual claim results (JSON)")
-    print("     - SHAP visualizations (HTML + PNG)")
-    print("     - Processing summary")
-    print("  2. Open 'outputs/shap_explanation.html' in your browser for interactive visualization")
-    print("  3. Modify claims in this script to test different scenarios")
-    print("  4. Set use_shap=True for detailed SHAP analysis")
-    print("  5. Fine-tune GPT-2 on your actual claim data for production use")
-    print("\n" + "="*70)
-    print("Model Options:")
-    print("  - 'gpt2' (124M) - Current, fastest")
-    print("  - 'gpt2-medium' (355M) - Better accuracy")
-    print("  - 'gpt2-large' (774M) - Even better")
-    print("  - 'gpt2-xl' (1.5B) - Best accuracy")
-    print("="*70 + "\n")
+    print(f"\n✅ Final summary report saved to {summary_filename}")
 
 
 if __name__ == "__main__":

@@ -14,16 +14,19 @@ def demo_shap_visualization():
     print("Using GPT-2 Language Model")
     print("="*80)
     
-    # Create outputs directory
-    os.makedirs('outputs', exist_ok=True)
+    # Get the directory of the script
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    output_dir = os.path.join(script_dir, 'outputs')
+    os.makedirs(output_dir, exist_ok=True)
     
     # Initialize classifier
     print("\n📦 Initializing GPT-2 model...")
-    classifier = GPT2ClaimClassifier()
+    classifier = GPT2ClaimClassifier(cache_dir=os.path.join(script_dir, "cached_models"))
     
     # Define test claims with different characteristics
     test_claims = [
         {
+            'id': 'CLM-APPROVE-001',
             'name': 'High Approval Case',
             'text': """
 Claim ID: CLM-APPROVE-001
@@ -37,6 +40,7 @@ Treatment: Surgical appendectomy performed immediately, 2-day hospital stay requ
 """
         },
         {
+            'id': 'CLM-REJECT-001',
             'name': 'High Rejection Case',
             'text': """
 Claim ID: CLM-REJECT-001
@@ -50,6 +54,7 @@ Treatment: Cosmetic facial reconstruction, not medically required
 """
         },
         {
+            'id': 'CLM-BORDERLINE-001',
             'name': 'Borderline Case',
             'text': """
 Claim ID: CLM-BORDERLINE-001
@@ -82,7 +87,7 @@ Treatment: Orthopedic surgery for fracture repair
         
         # Get SHAP explanation
         print("\n2️⃣ Generating SHAP explanation (this takes ~1-2 minutes)...")
-        explanation = classifier.get_shap_explanation(claim['text'], num_samples=80)
+        explanation = classifier.get_shap_explanation(claim['text'], claim_id=claim['id'], num_samples=80)
         
         print("\n3️⃣ Top features influencing the decision:")
         for j, feature in enumerate(explanation['top_features'][:8], 1):
