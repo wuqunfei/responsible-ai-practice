@@ -9,7 +9,7 @@ from langgraph.graph import StateGraph, END
 from loguru import logger
 
 from claim_classifier import GPT2ClaimClassifier
-
+from langfuse.langchain import CallbackHandler
 
 class ClaimState(TypedDict):
     """State object for the claim processing workflow"""
@@ -182,8 +182,12 @@ Policy Duration: {claim_data.get('policy_duration_months', 0)} months
             'content': f"⚠️ Confidence ({state['confidence']:.1%}) below threshold ({self.confidence_threshold:.1%}). Flagging for human review."
         })
         state['prediction'] = f"{state['prediction']} - PENDING HUMAN REVIEW"
-
+        
+        # Set status for human review cases
+        state['status'] = f"{state['prediction']}"
+        
         logger.warning(f"⚠️  Flagged for human review (confidence: {state['confidence']:.1%})")
+        logger.info(f"DEBUG: Status set to: {state['status']}")
         return state
 
     def finalize_decision(self, state: ClaimState) -> ClaimState:
@@ -194,15 +198,10 @@ Policy Duration: {claim_data.get('policy_duration_months', 0)} months
             'content': f"✓ Claim decision finalized: {state['prediction']}"
         })
 
-        # 2. Make decision based on confidence
-        confidence = result['confidence']
-        if confidence > 0.6:
-            state['status'] = "APPROVED"
-        elif confidence < 0.4:
-            state['status'] = "REJECTED"
-        else:
-            state['status'] = f"APPROVED - PENDING HUMAN REVIEW"
-
+        # Set status based on prediction (this is for high confidence cases)
+        state['status'] = state['prediction']
+        
+        logger.info(f"DEBUG: Finalize decision - Status set to: {state['status']}")
         logger.success(f"✓ Decision: {state['status']}")
         return state
 
@@ -217,7 +216,7 @@ Policy Duration: {claim_data.get('policy_duration_months', 0)} months
             Final state with decision and explanation
         """
         logger.info("\n" + "=" * 70)
-        logger.info(f"🔍 Processing Claim: {claim_data.get('claim_id', 'Unknown')}")
+        logger.info(f"🔍 Processing Claim: {claim_data.get('id', 'Unknown')}")
         logger.info("=" * 70)
 
         initial_state = {
@@ -228,10 +227,31 @@ Policy Duration: {claim_data.get('policy_duration_months', 0)} months
             'shap_explanation': {},
             'decision_reasoning': '',
             'messages': [],
-            'requires_human_review': False
+            'requires_human_review': False,
+            'status': 'Unknown'
         }
+        langfuse_callback_handler = CallbackHandler()
+        result = self.workflow.invoke(
+            initial_state,
+            config={"callbacks": [langfuse_callback_handler]}
+        )
 
-        result = self.workflow.invoke(initial_state)
+        
+        logger.info(f"DEBUG: Final result keys: {list(result.keys())}")
+        logger.info(f"DEBUG: Final result status: {result.get('status', 'NOT FOUND')}")
+        
+        # Ensure status is included in the final result (LangGraph workflow issue)
+        if 'status' not in result:
+            # Try to determine status from prediction and confidence
+            if result['confidence'] >= self.confidence_threshold:
+                result['status'] = result['prediction']
+            else:
+                # Check if prediction already contains "PENDING HUMAN REVIEW" to avoid duplicate suffix
+                if "PENDING HUMAN REVIEW" in result['prediction']:
+                    result['status'] = result['prediction']
+                else:
+                    result['status'] = f"{result['prediction']} - PENDING HUMAN REVIEW"
+            logger.info(f"DEBUG: Added missing status: {result['status']}")
 
         logger.info("=" * 70)
         logger.success("✅ Processing complete!")

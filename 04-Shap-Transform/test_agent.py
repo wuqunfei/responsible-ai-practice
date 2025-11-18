@@ -34,7 +34,9 @@ def print_result(result: dict):
     logger.info(f"\n{'Decision:':<20} {result['prediction']}")
     logger.info(f"{'Confidence:':<20} {result['confidence']:.1%}")
     logger.info(f"{'Human Review:':<20} {'Yes' if result['requires_human_review'] else 'No'}")
-    logger.info(f"\n{result['decision_reasoning']}")
+    logger.info(f"{'Status:':<20} {result.get('status', 'Unknown')}")
+    if 'decision_reasoning' in result:
+        logger.info(f"\n{result['decision_reasoning']}")
 
 
 def save_result(result: dict, filename: str, claim_data: dict):
@@ -44,15 +46,22 @@ def save_result(result: dict, filename: str, claim_data: dict):
         'prediction': result['prediction'],
         'confidence': result['confidence'],
         'requires_human_review': result['requires_human_review'],
-        'reasoning': result['decision_reasoning'],
-        'timestamp': datetime.now().isoformat(),
-        'top_features': result['shap_explanation'].get('top_features', []),
-        'explanation_method': result['shap_explanation'].get('method', 'unknown'),
-        'visualization_files': {
+        'status': result.get('status', 'Unknown'),
+        'timestamp': datetime.now().isoformat()
+    }
+    
+    # Add reasoning if available
+    if 'decision_reasoning' in result:
+        output['reasoning'] = result['decision_reasoning']
+    
+    # Add SHAP explanation if available
+    if 'shap_explanation' in result and result['shap_explanation']:
+        output['top_features'] = result['shap_explanation'].get('top_features', [])
+        output['explanation_method'] = result['shap_explanation'].get('method', 'unknown')
+        output['visualization_files'] = {
             'html': result['shap_explanation'].get('html_path'),
             'image': result['shap_explanation'].get('image_path')
         }
-    }
     
     with open(filename, 'w') as f:
         json.dump(output, f, indent=2)
@@ -85,20 +94,31 @@ def main():
         with open(os.path.join(claims_dir, file_name), 'r') as f:
             claim_data = json.load(f)
         
+        # Handle different claim ID field names
+        claim_id = claim_data.get('id') or claim_data.get('claim_id') or 'Unknown'
+        claim_data['id'] = claim_id  # Ensure consistent ID field
+        
         # Process the claim using the agent
         result = agent.process_claim(claim_data)
         all_results.append(result)
-
-        # Save individual result
-        output_filename = os.path.join(output_dir, f"summary_{claim_data['id']}.json")
+        
+        # Print the result
+        print_section(f"Claim {claim_id} Result")
+        print_result(result)
+        
+        # Save the result
+        output_filename = os.path.join(output_dir, f"summary_{claim_id}.json")
         save_result(result, output_filename, claim_data)
+
+
 
     # --- Final Summary ---
     print_section("Final Summary Report")
     logger.info(f"Total claims processed: {len(all_results)}")
     
     for res in all_results:
-        logger.info(f"  - {res['claim_data']['id']}: {res['prediction']} (Confidence: {res['confidence']:.1%})")
+        claim_id = res['claim_data'].get('id', 'Unknown')
+        logger.info(f"  - {claim_id}: {res['prediction']} (Confidence: {res['confidence']:.1%}) - Status: {res.get('status', 'Unknown')}")
 
     logger.info(f"\n✅ Final summary report saved in the '{output_dir}' directory.")
 
