@@ -73,4 +73,5 @@ coverage.xml
 
 .venv
 01-PII-detection/models
-04-Shap-Transform/models
+04-Shap-Transform/cached_models
+cached_models

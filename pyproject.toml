@@ -30,6 +30,7 @@ dependencies = [
     "langfuse>=3.9.3",
     "transformers>=4.57.1",
     "python-dotenv>=1.2.1",
+    "logfire>=4.14.2",
 ]
 
 [project.optional-dependencies]
