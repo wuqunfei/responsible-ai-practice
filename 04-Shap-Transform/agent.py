@@ -76,7 +76,7 @@ class ClaimProcessingAgent:
 
         # Format claim as text for model
         claim_text = f"""
-Claim ID: {claim_data.get('claim_id', 'N/A')}
+Claim ID: {claim_data.get('id', 'N/A')}
 Policy Type: {claim_data.get('policy_type', 'N/A')}
 Claim Amount: ${claim_data.get('amount', 0):,.2f}
 Description: {claim_data.get('description', 'N/A')}
@@ -89,10 +89,10 @@ Policy Duration: {claim_data.get('policy_duration_months', 0)} months
         state['messages'] = state.get('messages', [])
         state['messages'].append({
             'role': 'system',
-            'content': f"Processing claim: {claim_data.get('claim_id', 'Unknown')}"
+            'content': f"Processing claim: {claim_data.get('id', 'Unknown')}"
         })
 
-        logger.info(f"✓ Preprocessed claim {claim_data.get('claim_id')}")
+        logger.info(f"✓ Preprocessed claim {claim_data.get('id')}")
         return state
 
     def classify_claim(self, state: ClaimState) -> ClaimState:
@@ -118,12 +118,13 @@ Policy Duration: {claim_data.get('policy_duration_months', 0)} months
     def explain_decision(self, state: ClaimState) -> ClaimState:
         """Generate explanation using SHAP or simple rules"""
         claim_text = state['claim_text']
+        claim_id = state['claim_data'].get('claim_id', 'unknown_claim')
 
         # Get explanation
         if self.use_shap:
             logger.info("  Using SHAP for detailed explanation...")
             try:
-                explanation = self.classifier.get_shap_explanation(claim_text, num_samples=100)
+                explanation = self.classifier.get_shap_explanation(claim_text, claim_id=claim_id, num_samples=100)
             except Exception as e:
                 logger.warning(f"  Warning: SHAP failed, using simple explanation: {e}")
                 explanation = self.classifier.get_simple_explanation(claim_text)
@@ -193,7 +194,16 @@ Policy Duration: {claim_data.get('policy_duration_months', 0)} months
             'content': f"✓ Claim decision finalized: {state['prediction']}"
         })
 
-        logger.success(f"✓ Decision finalized: {state['prediction']}")
+        # 2. Make decision based on confidence
+        confidence = result['confidence']
+        if confidence > 0.6:
+            state['status'] = "APPROVED"
+        elif confidence < 0.4:
+            state['status'] = "REJECTED"
+        else:
+            state['status'] = f"APPROVED - PENDING HUMAN REVIEW"
+
+        logger.success(f"✓ Decision: {state['status']}")
         return state
 
     def process_claim(self, claim_data: dict) -> dict:
