@@ -113,6 +113,19 @@ Decision: """
         
         # Parse response
         return self._parse_response(response, text)
+
+    def predict_rule_based(self, text: str) -> np.ndarray:
+        """
+        Predict claim approval probability using a rule-based approach.
+        
+        Args:
+            text: Formatted claim text
+            
+        Returns:
+            Array of probabilities [reject_prob, approve_prob]
+        """
+        approval_score = self._calculate_approval_score(text)
+        return np.array([1 - approval_score, approval_score])
     
     def _parse_response(self, response: str, claim_text: str) -> np.ndarray:
         """

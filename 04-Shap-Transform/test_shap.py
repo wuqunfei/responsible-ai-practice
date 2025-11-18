@@ -120,7 +120,7 @@ def demo_shap_visualization():
 
 
 def demo_simple_explanation():
-    """Demo the fast rule-based explanation"""
+    """Demo the fast rule-based explanation for all claims in the claims directory."""
     
     logger.info("="*80)
     logger.info("Quick Rule-Based Explanation Demo (No SHAP)")
@@ -128,27 +128,40 @@ def demo_simple_explanation():
     
     classifier = GPT2ClaimClassifier()
     
-    # Load a specific claim for the simple explanation demo
+    # Load all claims from the 'claims' directory
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    claim_path = os.path.join(script_dir, 'claims', 'CLM-APPROVE-001.json')
+    claims_dir = os.path.join(script_dir, 'claims')
+    test_claims = load_claims_from_directory(claims_dir)
     
-    with open(claim_path, 'r') as f:
-        claim = json.load(f)
+    logger.info(f"\n📂 Loading claims from: {claims_dir}")
+    logger.info(f"   Found {len(test_claims)} claims to process.")
+
+    for i, claim in enumerate(test_claims, 1):
+        logger.info("\n" + "-"*80)
+        logger.info(f"Processing Claim {i}/{len(test_claims)}: {claim['id']} - {claim['name']}")
+        logger.info("-"*80)
+
+        test_text = claim['text']
+        
+        # Get prediction
+        probs = classifier.predict_rule_based(test_text)
+        decision = "APPROVED" if probs[1] > 0.5 else "REJECTED"
+        
+        logger.info(f"\nPrediction: {decision} (Approve: {probs[1]:.1%}, Reject: {probs[0]:.1%})")
+
+        logger.info("\nClaim text:")
+        logger.info(test_text)
+        
+        logger.info("\nGenerating rule-based explanation...")
+        explanation = classifier.get_simple_explanation(test_text)
+        
+        logger.info(f"\nMethod: {explanation['method']}")
+        logger.info("\nKey features detected:")
+        for j, feature in enumerate(explanation['top_features'], 1):
+            impact = "APPROVE" if feature['shap_value'] > 0 else "REJECT"
+            logger.info(f"   {j}. '{feature['feature']}': {feature['shap_value']:+.2f} → {impact}")
     
-    test_text = claim['text']
-    
-    logger.info("\nClaim text:")
-    logger.info(test_text)
-    
-    logger.info("\nGenerating rule-based explanation...")
-    explanation = classifier.get_simple_explanation(test_text)
-    
-    logger.info(f"\nMethod: {explanation['method']}")
-    logger.info("\nKey features detected:")
-    for i, feature in enumerate(explanation['top_features'], 1):
-        impact = "APPROVE" if feature['shap_value'] > 0 else "REJECT"
-        logger.info(f"   {i}. '{feature['feature']}': {feature['shap_value']:+.2f} → {impact}")
-    
+    logger.info("\n" + "="*80)
     logger.info("\n💨 Rule-based explanations are:")
     logger.info("   ✓ Very fast (instant results)")
     logger.info("   ✓ Easy to understand")
