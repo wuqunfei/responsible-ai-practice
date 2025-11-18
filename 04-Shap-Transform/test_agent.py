@@ -9,6 +9,19 @@ import os
 from claim_classifier import GPT2ClaimClassifier
 from loguru import logger
 
+os.environ["LANGFUSE_PUBLIC_KEY"] = "pk-lf-6f92e45b-0a31-4a22-a8f9-bbd794dff2ed"
+os.environ["LANGFUSE_SECRET_KEY"] = "sk-lf-7d4a7388-b2ad-41db-899c-2e30c9e977e3"
+os.environ["LANGFUSE_BASE_URL"] = "https://cloud.langfuse.com"
+
+def langfuse_auth():
+    from langfuse import get_client
+    langfuse = get_client()
+    # Verify connection
+    if langfuse.auth_check():
+        logger.success("Langfuse client is authenticated and ready!")
+    else:
+        logger.error("Authentication failed. Please check your credentials and host.")
+
 
 def print_section(title: str):
     """Print a formatted section header"""
@@ -131,7 +144,9 @@ def main():
 
 
 if __name__ == "__main__":
+    langfuse_auth()
     try:
+
         main()
     except KeyboardInterrupt:
         logger.warning("\n\n⚠️  Demo interrupted by user")
