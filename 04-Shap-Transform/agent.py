@@ -6,6 +6,7 @@ import os
 from typing import TypedDict, Annotated, Literal
 
 from langgraph.graph import StateGraph, END
+from loguru import logger
 
 from claim_classifier import GPT2ClaimClassifier
 
@@ -91,14 +92,14 @@ Policy Duration: {claim_data.get('policy_duration_months', 0)} months
             'content': f"Processing claim: {claim_data.get('claim_id', 'Unknown')}"
         })
 
-        print(f"✓ Preprocessed claim {claim_data.get('claim_id')}")
+        logger.info(f"✓ Preprocessed claim {claim_data.get('claim_id')}")
         return state
 
     def classify_claim(self, state: ClaimState) -> ClaimState:
         """Run classification with the GPT-2 model"""
         claim_text = state['claim_text']
 
-        print("  Running GPT-2 classification...")
+        logger.info("  Running GPT-2 classification...")
         # Get prediction
         probs = self.classifier.predict(claim_text)
         prediction = "APPROVED" if probs[1] > 0.5 else "REJECTED"
@@ -111,7 +112,7 @@ Policy Duration: {claim_data.get('policy_duration_months', 0)} months
             'content': f"Classification: {prediction} (confidence: {confidence:.1%})"
         })
 
-        print(f"✓ Classification: {prediction} with {confidence:.1%} confidence")
+        logger.success(f"✓ Classification: {prediction} with {confidence:.1%} confidence")
         return state
 
     def explain_decision(self, state: ClaimState) -> ClaimState:
@@ -120,14 +121,14 @@ Policy Duration: {claim_data.get('policy_duration_months', 0)} months
 
         # Get explanation
         if self.use_shap:
-            print("  Using SHAP for detailed explanation...")
+            logger.info("  Using SHAP for detailed explanation...")
             try:
                 explanation = self.classifier.get_shap_explanation(claim_text, num_samples=100)
             except Exception as e:
-                print(f"  Warning: SHAP failed, using simple explanation: {e}")
+                logger.warning(f"  Warning: SHAP failed, using simple explanation: {e}")
                 explanation = self.classifier.get_simple_explanation(claim_text)
         else:
-            print("  Using rule-based explanation (fast mode)...")
+            logger.info("  Using rule-based explanation (fast mode)...")
             explanation = self.classifier.get_simple_explanation(claim_text)
 
         state['shap_explanation'] = explanation
@@ -163,7 +164,7 @@ Policy Duration: {claim_data.get('policy_duration_months', 0)} months
             'content': reasoning
         })
 
-        print("✓ Generated explanation")
+        logger.success("✓ Generated explanation")
         return state
 
     def check_confidence_threshold(self, state: ClaimState) -> Literal["human_review", "finalize"]:
@@ -181,7 +182,7 @@ Policy Duration: {claim_data.get('policy_duration_months', 0)} months
         })
         state['prediction'] = f"{state['prediction']} - PENDING HUMAN REVIEW"
 
-        print(f"⚠️  Flagged for human review (confidence: {state['confidence']:.1%})")
+        logger.warning(f"⚠️  Flagged for human review (confidence: {state['confidence']:.1%})")
         return state
 
     def finalize_decision(self, state: ClaimState) -> ClaimState:
@@ -192,7 +193,7 @@ Policy Duration: {claim_data.get('policy_duration_months', 0)} months
             'content': f"✓ Claim decision finalized: {state['prediction']}"
         })
 
-        print(f"✓ Decision finalized: {state['prediction']}")
+        logger.success(f"✓ Decision finalized: {state['prediction']}")
         return state
 
     def process_claim(self, claim_data: dict) -> dict:
@@ -205,9 +206,9 @@ Policy Duration: {claim_data.get('policy_duration_months', 0)} months
         Returns:
             Final state with decision and explanation
         """
-        print("\n" + "=" * 70)
-        print(f"🔍 Processing Claim: {claim_data.get('claim_id', 'Unknown')}")
-        print("=" * 70)
+        logger.info("\n" + "=" * 70)
+        logger.info(f"🔍 Processing Claim: {claim_data.get('claim_id', 'Unknown')}")
+        logger.info("=" * 70)
 
         initial_state = {
             'claim_data': claim_data,
@@ -222,9 +223,9 @@ Policy Duration: {claim_data.get('policy_duration_months', 0)} months
 
         result = self.workflow.invoke(initial_state)
 
-        print("=" * 70)
-        print("✅ Processing complete!")
-        print("=" * 70 + "\n")
+        logger.info("=" * 70)
+        logger.success("✅ Processing complete!")
+        logger.info("=" * 70 + "\n")
 
         return result
 
@@ -245,9 +246,9 @@ def create_agent(confidence_threshold: float = 0.7, use_shap: bool = True) -> Cl
 
 if __name__ == "__main__":
     # Test the agent
-    print("="*70)
-    print("Testing Insurance Claim Agent with GPT-2")
-    print("="*70)
+    logger.info("="*70)
+    logger.info("Testing Insurance Claim Agent with GPT-2")
+    logger.info("="*70)
     
     os.makedirs('outputs', exist_ok=True)
     
@@ -265,10 +266,10 @@ if __name__ == "__main__":
 
     result = agent.process_claim(test_claim)
 
-    print(f"\n{'='*70}")
-    print("FINAL RESULTS")
-    print(f"{'='*70}")
-    print(f"Decision: {result['prediction']}")
-    print(f"Confidence: {result['confidence']:.1%}")
-    print(f"Requires Review: {result['requires_human_review']}")
-    print(f"\n{result['decision_reasoning']}")
+    logger.info(f"\n{'='*70}")
+    logger.info("FINAL RESULTS")
+    logger.info(f"{'='*70}")
+    logger.info(f"Decision: {result['prediction']}")
+    logger.info(f"Confidence: {result['confidence']:.1%}")
+    logger.info(f"Requires Review: {result['requires_human_review']}")
+    logger.info(f"\n{result['decision_reasoning']}")

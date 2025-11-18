@@ -9,6 +9,7 @@ from typing import Dict, List
 import warnings
 import re
 import os
+from loguru import logger
 warnings.filterwarnings('ignore')
 import matplotlib.pyplot as plt
 
@@ -32,8 +33,8 @@ class GPT2ClaimClassifier:
             model_name: Name of the GPT-2 model to use.
             cache_dir: Directory to cache the downloaded model.
         """
-        print(f"Loading model: {model_name}...")
-        print("This may take a moment for the first run...")
+        logger.info(f"Loading model: {model_name}...")
+        logger.info("This may take a moment for the first run...")
         
         # Ensure cache directory exists
         os.makedirs(cache_dir, exist_ok=True)
@@ -42,8 +43,8 @@ class GPT2ClaimClassifier:
             self.tokenizer = GPT2Tokenizer.from_pretrained(model_name, cache_dir=cache_dir)
             self.model = GPT2LMHeadModel.from_pretrained(model_name, cache_dir=cache_dir)
         except Exception as e:
-            print(f"Error loading model from cache: {e}")
-            print("Attempting to download model again...")
+            logger.error(f"Error loading model from cache: {e}")
+            logger.info("Attempting to download model again...")
             self.tokenizer = GPT2Tokenizer.from_pretrained(model_name, cache_dir=cache_dir, force_download=True)
             self.model = GPT2LMHeadModel.from_pretrained(model_name, cache_dir=cache_dir, force_download=True)
         
@@ -55,8 +56,8 @@ class GPT2ClaimClassifier:
         self.model = self.model.to(self.device)
         self.model.eval()
         
-        print(f"Model loaded successfully on {self.device}!")
-        print(f"Model size: {model_name} ({self._get_model_params()}M parameters)")
+        logger.success(f"Model loaded successfully on {self.device}!")
+        logger.info(f"Model size: {model_name} ({self._get_model_params()}M parameters)")
         
     def _get_model_params(self) -> int:
         """Get number of model parameters in millions"""
@@ -71,7 +72,7 @@ class GPT2ClaimClassifier:
 Based on the above claim information, this claim should be:
 Decision: """
         return prompt
-        print(f"Model size: {model_name} ({self._get_model_params()}M parameters)")
+        logger.info(f"Model size: {model_name} ({self._get_model_params()}M parameters)")
     
     def predict(self, text: str) -> np.ndarray:
         """
@@ -241,7 +242,7 @@ Decision: """
         Returns:
             Dictionary with SHAP values, metadata, and file paths
         """
-        print("Generating SHAP explanation (this may take 1-2 minutes)...")
+        logger.info("Generating SHAP explanation (this may take 1-2 minutes)...")
         
         # Create output directory
         output_dir = 'outputs'
@@ -257,7 +258,7 @@ Decision: """
         shap_values = explainer([text], max_evals=num_samples)
         
         # Generate and save text plot as HTML
-        print("Generating SHAP visualization...")
+        logger.info("Generating SHAP visualization...")
         html_output = shap.plots.text(shap_values[0], display=False)
         
         # Save HTML
@@ -298,7 +299,7 @@ Decision: """
 </body>
 </html>""")
         
-        print(f"✓ SHAP HTML saved to: {html_path}")
+        logger.success(f"✓ SHAP HTML saved to: {html_path}")
         
         # Try to save as image using matplotlib
         try:
@@ -334,10 +335,10 @@ Decision: """
             plt.savefig(img_path, dpi=300, bbox_inches='tight')
             plt.close()
             
-            print(f"✓ SHAP image saved to: {img_path}")
+            logger.success(f"✓ SHAP image saved to: {img_path}")
             
         except Exception as e:
-            print(f"Warning: Could not save image plot: {e}")
+            logger.warning(f"Warning: Could not save image plot: {e}")
             img_path = None
         
         # Extract top features
@@ -375,7 +376,7 @@ Decision: """
         Simplified explanation based on keyword matching (fallback method).
         Faster than SHAP, useful for quick processing.
         """
-        print("Generating simple rule-based explanation...")
+        logger.info("Generating simple rule-based explanation...")
         
         # Enhanced rule-based importance scoring
         keywords = {
@@ -430,9 +431,9 @@ Decision: """
 
 if __name__ == "__main__":
     # Quick test
-    print("="*70)
-    print("Testing GPT-2 Claim Classifier with SHAP")
-    print("="*70)
+    logger.info("="*70)
+    logger.info("Testing GPT-2 Claim Classifier with SHAP")
+    logger.info("="*70)
     
     classifier = GPT2ClaimClassifier()
     
@@ -446,18 +447,18 @@ Previous Claims: 2
 Policy Duration: 24 months
 """
     
-    print("\nRunning prediction...")
+    logger.info("\nRunning prediction...")
     probs = classifier.predict(test_text)
-    print(f"Prediction: Approve={probs[1]:.2%}, Reject={probs[0]:.2%}")
+    logger.info(f"Prediction: Approve={probs[1]:.2%}, Reject={probs[0]:.2%}")
     
-    print("\nGenerating SHAP explanation...")
+    logger.info("\nGenerating SHAP explanation...")
     explanation = classifier.get_shap_explanation(test_text, num_samples=50)
     
-    print(f"\nTop features influencing decision:")
+    logger.info(f"\nTop features influencing decision:")
     for feat in explanation['top_features'][:5]:
         direction = "→ APPROVE" if feat['shap_value'] > 0 else "→ REJECT"
-        print(f"  • {feat['feature']}: {feat['shap_value']:+.3f} {direction}")
+        logger.info(f"  • {feat['feature']}: {feat['shap_value']:+.3f} {direction}")
     
-    print(f"\nVisualization files:")
-    print(f"  • HTML: {explanation.get('html_path', 'N/A')}")
-    print(f"  • Image: {explanation.get('image_path', 'N/A')}")
+    logger.info(f"\nVisualization files:")
+    logger.info(f"  • HTML: {explanation.get('html_path', 'N/A')}")
+    logger.info(f"  • Image: {explanation.get('image_path', 'N/A')}")
