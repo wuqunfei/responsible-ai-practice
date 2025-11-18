@@ -18,7 +18,7 @@ class GPT2ClaimClassifier:
     GPT-2-based classifier for insurance claim approval/rejection with SHAP explanations.
     """
     
-    def __init__(self, model_name: str = "gpt2", cache_dir: str = "model_cache"):
+    def __init__(self, model_name: str = "gpt2", cache_dir: str = "cached_models"):
         """
         Initialize the classifier with GPT-2 model.
         

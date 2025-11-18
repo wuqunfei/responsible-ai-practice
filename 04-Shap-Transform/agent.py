@@ -1,12 +1,13 @@
 """
 LangGraph Agent for Insurance Claim Processing with GPT-2
 """
-from typing import TypedDict, Annotated, Literal
 import operator
-from langgraph.graph import StateGraph, END
-from claim_classifier import GPT2ClaimClassifier
-import json
 import os
+from typing import TypedDict, Annotated, Literal
+
+from langgraph.graph import StateGraph, END
+
+from claim_classifier import GPT2ClaimClassifier
 
 
 class ClaimState(TypedDict):

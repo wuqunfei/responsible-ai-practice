@@ -1,192 +1,140 @@
 """
-Unit tests for Insurance Claim AI Agent
-Run with: python test_agent.py
+Insurance Claim AI Agent - Main Demo with GPT-2
+Run this to see the complete system with SHAP explanations
 """
 import json
+from agent import create_agent
+from datetime import datetime
 import os
-from demo_lightweight import SimpleLangGraphAgent, MockClassifier
+from claim_classifier import GPT2ClaimClassifier
 
 
-def test_mock_classifier():
-    """Test the mock classifier"""
-    print("Testing MockClassifier...")
-    
-    classifier = MockClassifier()
-    
-    # Test emergency claim (should approve)
-    text1 = "Emergency surgery for appendicitis at hospital"
-    probs1 = classifier.predict(text1)
-    assert probs1[1] > 0.5, "Emergency claim should be approved"
-    print("✓ Emergency claim test passed")
-    
-    # Test cosmetic claim (should reject)
-    text2 = "Elective cosmetic surgery procedure"
-    probs2 = classifier.predict(text2)
-    assert probs2[1] < 0.5, "Cosmetic claim should be rejected"
-    print("✓ Cosmetic claim test passed")
-    
-    # Test explanation
-    explanation = classifier.get_explanation(text1)
-    assert 'top_features' in explanation
-    assert len(explanation['top_features']) > 0
-    print("✓ Explanation generation test passed")
-    
-    print("MockClassifier: All tests passed!\n")
-
-
-def test_agent_workflow():
-    """Test the agent workflow"""
-    print("Testing SimpleLangGraphAgent...")
-    
-    agent = SimpleLangGraphAgent(confidence_threshold=0.7)
-    
-    # Test claim
-    test_claim = {
-        'claim_id': 'TEST-001',
-        'policy_type': 'Health Insurance',
-        'amount': 10000,
-        'description': 'Emergency hospital visit',
-        'medical_reports': 'Confirmed diagnosis',
-        'previous_claims': 1,
-        'policy_duration_months': 12
-    }
-    
-    # Process claim
-    result = agent.process_claim(test_claim)
-    
-    # Verify result structure
-    assert 'prediction' in result
-    assert 'confidence' in result
-    assert 'decision_reasoning' in result
-    assert 'requires_human_review' in result
-    assert result['confidence'] >= 0.0 and result['confidence'] <= 1.0
-    print("✓ Agent workflow test passed")
-    
-    # Test high confidence routing
-    result_high_conf = agent.process_claim({
-        **test_claim,
-        'claim_id': 'TEST-002',
-        'description': 'Emergency surgery at hospital, confirmed diagnosis necessary procedure'
-    })
-    assert not result_high_conf['requires_human_review'], "High confidence should not require review"
-    print("✓ High confidence routing test passed")
-    
-    print("SimpleLangGraphAgent: All tests passed!\n")
-
-
-def test_json_output():
-    """Test JSON output generation"""
-    print("Testing JSON output...")
-    
-    agent = SimpleLangGraphAgent()
-    
-    test_claim = {
-        'claim_id': 'JSON-TEST-001',
-        'policy_type': 'Test',
-        'amount': 5000,
-        'description': 'Test claim',
-        'medical_reports': 'Test reports',
-        'previous_claims': 0,
-        'policy_duration_months': 12
-    }
-    
-    result = agent.process_claim(test_claim)
-    
-    # Save to JSON
-    os.makedirs('test_outputs', exist_ok=True)
-    output_file = 'test_outputs/test_result.json'
-    
-    with open(output_file, 'w') as f:
-        json.dump({
-            'claim_id': result['claim_data']['claim_id'],
-            'prediction': result['prediction'],
-            'confidence': result['confidence']
-        }, f, indent=2)
-    
-    # Verify JSON file
-    assert os.path.exists(output_file), "JSON file should be created"
-    
-    with open(output_file, 'r') as f:
-        loaded = json.load(f)
-        assert loaded['claim_id'] == 'JSON-TEST-001'
-    
-    print("✓ JSON output test passed")
-    print("JSON output: All tests passed!\n")
-
-
-def test_confidence_threshold():
-    """Test different confidence thresholds"""
-    print("Testing confidence thresholds...")
-    
-    # Low threshold (70%)
-    agent_low = SimpleLangGraphAgent(confidence_threshold=0.7)
-    
-    # High threshold (90%)
-    agent_high = SimpleLangGraphAgent(confidence_threshold=0.9)
-    
-    # Borderline claim
-    borderline_claim = {
-        'claim_id': 'THRESHOLD-TEST',
-        'policy_type': 'Health',
-        'amount': 20000,
-        'description': 'Minor procedure',
-        'medical_reports': 'Reports available',
-        'previous_claims': 3,
-        'policy_duration_months': 6
-    }
-    
-    result_low = agent_low.process_claim(borderline_claim)
-    result_high = agent_high.process_claim(borderline_claim)
-    
-    # High threshold should be more likely to require review
-    print(f"  Low threshold (70%): Review = {result_low['requires_human_review']}, Confidence = {result_low['confidence']:.1%}")
-    print(f"  High threshold (90%): Review = {result_high['requires_human_review']}, Confidence = {result_high['confidence']:.1%}")
-    
-    print("✓ Confidence threshold test passed")
-    print("Confidence thresholds: All tests passed!\n")
-
-
-def run_all_tests():
-    """Run all tests"""
+def print_section(title: str):
+    """Print a formatted section header"""
+    print("\n" + "="*70)
+    print(f"  {title}")
     print("="*70)
-    print("  Running Insurance Claim AI Agent Tests")
-    print("="*70)
-    print()
+
+
+def print_result(result: dict):
+    """Print formatted result"""
+    print(f"\n{'Decision:':<20} {result['prediction']}")
+    print(f"{'Confidence:':<20} {result['confidence']:.1%}")
+    print(f"{'Human Review:':<20} {'Yes' if result['requires_human_review'] else 'No'}")
+    print(f"\n{result['decision_reasoning']}")
+
+
+def save_result(result: dict, filename: str):
+    """Save result to JSON file"""
+    output = {
+        'claim_id': result['claim_data']['claim_id'],
+        'prediction': result['prediction'],
+        'confidence': result['confidence'],
+        'requires_human_review': result['requires_human_review'],
+        'reasoning': result['decision_reasoning'],
+        'timestamp': datetime.now().isoformat(),
+        'top_features': result['shap_explanation'].get('top_features', []),
+        'explanation_method': result['shap_explanation'].get('method', 'unknown'),
+        'visualization_files': {
+            'html': result['shap_explanation'].get('html_path'),
+            'image': result['shap_explanation'].get('image_path')
+        }
+    }
     
-    try:
-        test_mock_classifier()
-        test_agent_workflow()
-        test_json_output()
-        test_confidence_threshold()
-        
-        print("="*70)
-        print("  ✅ ALL TESTS PASSED!")
-        print("="*70)
-        print()
-        
-        # Cleanup
-        import shutil
-        if os.path.exists('test_outputs'):
-            shutil.rmtree('test_outputs')
-        print("✓ Cleanup complete")
-        
-        return True
-        
-    except AssertionError as e:
-        print("\n" + "="*70)
-        print(f"  ❌ TEST FAILED: {e}")
-        print("="*70)
-        return False
+    with open(filename, 'w') as f:
+        json.dump(output, f, indent=2)
     
-    except Exception as e:
-        print("\n" + "="*70)
-        print(f"  ❌ ERROR: {e}")
-        print("="*70)
-        import traceback
-        traceback.print_exc()
-        return False
+    print(f"\n✓ Result saved to: {filename}")
+
+
+def main():
+    # Get the directory of the script
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    claims_dir = os.path.join(script_dir, 'claims')
+    output_dir = os.path.join(script_dir, 'outputs')
+    os.makedirs(output_dir, exist_ok=True)
+
+    # Initialize the classifier with caching
+    print("\n📦 Initializing GPT-2 Claim Classifier...")
+    classifier = GPT2ClaimClassifier(model_name="gpt2", cache_dir=os.path.join(script_dir, "cached_models"))
+    
+    # --- Get Claims to Process ---
+    claim_files = sorted([f for f in os.listdir(claims_dir) if f.endswith('.json')])
+    if not claim_files:
+        print(f"❌ No claim files found in {claims_dir}.")
+        return
+
+    print(f"Found {len(claim_files)} claims to process: {claim_files}")
+
+    # --- Process Each Claim ---
+    all_results = []
+    for i, file_name in enumerate(claim_files):
+        claim_id = file_name.replace('.json', '')
+        print("="*80)
+        print(f"Processing Claim {i+1}/{len(claim_files)}: {claim_id}")
+        print("="*80)
+
+        with open(os.path.join(claims_dir, file_name), 'r') as f:
+            claim_data = json.load(f)
+        
+        claim_text = claim_data['claim_details']
+
+        # --- 1. Prediction ---
+        print("\n1️⃣ Running prediction...")
+        probabilities = classifier.predict(claim_text)
+        decision = "APPROVED" if probabilities[1] > 0.5 else "REJECTED"
+        confidence = probabilities[1] if decision == "APPROVED" else 1 - probabilities[1]
+        print(f"   → Decision: {decision} (Confidence: {confidence:.1%})")
+
+        # --- 2. SHAP Explanation ---
+        print("\n2️⃣ Generating SHAP explanation...")
+        explanation = classifier.get_shap_explanation(
+            claim_text, 
+            claim_id=claim_id, 
+            num_samples=100  # Higher samples for better accuracy
+        )
+
+        # --- 3. Store Results ---
+        result = {
+            "claim_id": claim_id,
+            "decision": decision,
+            "confidence": confidence,
+            "probabilities": {
+                "approve": probabilities[1],
+                "reject": probabilities[0]
+            },
+            "explanation": explanation
+        }
+        all_results.append(result)
+
+        # Save individual result
+        output_filename = os.path.join(output_dir, f"summary_{claim_id}.json")
+        with open(output_filename, 'w') as f:
+            json.dump(result, f, indent=4)
+        print(f"\n💾 Individual result saved to {output_filename}")
+
+    # --- Final Summary ---
+    print("="*80)
+    print("\n🏁 All claims processed. Generating final summary...")
+    summary_data = {
+        "total_claims_processed": len(all_results),
+        "processed_at": __import__('datetime').datetime.now().isoformat(),
+        "results": all_results
+    }
+
+    summary_filename = os.path.join(output_dir, "summary_report.json")
+    with open(summary_filename, 'w') as f:
+        json.dump(summary_data, f, indent=4)
+    
+    print(f"\n✅ Final summary report saved to {summary_filename}")
 
 
 if __name__ == "__main__":
-    success = run_all_tests()
-    exit(0 if success else 1)
+    try:
+        main()
+    except KeyboardInterrupt:
+        print("\n\n⚠️  Demo interrupted by user")
+    except Exception as e:
+        print(f"\n\n❌ Error: {e}")
+        import traceback
+        traceback.print_exc()
