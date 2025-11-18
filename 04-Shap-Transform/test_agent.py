@@ -95,7 +95,8 @@ def main():
             claim_data = json.load(f)
         
         # Handle different claim ID field names
-        claim_id = claim_data.get('id') or claim_data.get('claim_id') or 'Unknown'
+        claim_id = claim_data.get('id')
+        claim_name = claim_data.get('name', 'Unknown Claim')
         claim_data['id'] = claim_id  # Ensure consistent ID field
         
         # Process the claim using the agent
@@ -103,7 +104,7 @@ def main():
         all_results.append(result)
         
         # Print the result
-        print_section(f"Claim {claim_id} Result")
+        print_section(f"Claim {claim_id} - {claim_name}")
         print_result(result)
         
         # Save the result
@@ -118,7 +119,8 @@ def main():
     
     for res in all_results:
         claim_id = res['claim_data'].get('id', 'Unknown')
-        logger.info(f"  - {claim_id}: {res['prediction']} (Confidence: {res['confidence']:.1%}) - Status: {res.get('status', 'Unknown')}")
+        claim_name = res['claim_data'].get('name', 'Unknown Claim')
+        logger.info(f"  - {claim_id} ({claim_name}): {res['prediction']} (Confidence: {res['confidence']:.1%}) - Status: {res.get('status', 'Unknown')}")
 
     logger.info(f"\n✅ Final summary report saved in the '{output_dir}' directory.")
 

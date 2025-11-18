@@ -1,0 +1,91 @@
+{
+  "claim_id": "CLM-PENDING-001",
+  "prediction": "APPROVED",
+  "confidence": 0.83,
+  "requires_human_review": false,
+  "status": "APPROVED",
+  "timestamp": "2025-11-19T00:35:00.152382",
+  "reasoning": "Decision: APPROVED\nConfidence: 83.0%\nExplanation Method: shap\n\nKey factors influencing this decision:\n  1. ' \u0120accident' (impact: 0.026, supporting approval)\n  2. ' \u010a' (impact: 0.026, supporting approval)\n  3. ' \u0120from' (impact: 0.022, supporting approval)\n  4. ' :' (impact: 0.022, supporting approval)\n  5. ' \u0120Injury' (impact: 0.022, supporting approval)\n  6. ' \u0120vehicle' (impact: 0.022, supporting approval)\n  7. ' \u0120accident' (impact: 0.022, supporting approval)\n  8. ' \u0120treatment' (impact: 0.020, supporting approval)\n\n\ud83d\udcca SHAP visualization saved to: outputs/shap_explanation_unknown_claim.html\n\ud83d\udcc8 SHAP chart saved to: outputs/shap_explanation_unknown_claim.png",
+  "top_features": [
+    {
+      "feature": " \u0120accident",
+      "shap_value": 0.025875000000000002,
+      "impact": "positive"
+    },
+    {
+      "feature": " \u010a",
+      "shap_value": 0.025875000000000002,
+      "impact": "positive"
+    },
+    {
+      "feature": " \u0120from",
+      "shap_value": 0.021583333333333333,
+      "impact": "positive"
+    },
+    {
+      "feature": " :",
+      "shap_value": 0.021583333333333333,
+      "impact": "positive"
+    },
+    {
+      "feature": " \u0120Injury",
+      "shap_value": 0.021583333333333333,
+      "impact": "positive"
+    },
+    {
+      "feature": " \u0120vehicle",
+      "shap_value": 0.021583333333333333,
+      "impact": "positive"
+    },
+    {
+      "feature": " \u0120accident",
+      "shap_value": 0.021583333333333333,
+      "impact": "positive"
+    },
+    {
+      "feature": " \u0120treatment",
+      "shap_value": 0.019906249999999993,
+      "impact": "positive"
+    },
+    {
+      "feature": " \u0120recommended",
+      "shap_value": 0.019906249999999993,
+      "impact": "positive"
+    },
+    {
+      "feature": " Medical",
+      "shap_value": 0.01918750000000001,
+      "impact": "positive"
+    },
+    {
+      "feature": " \u0120Reports",
+      "shap_value": 0.01918750000000001,
+      "impact": "positive"
+    },
+    {
+      "feature": " ,",
+      "shap_value": 0.015458333333333331,
+      "impact": "positive"
+    },
+    {
+      "feature": " \u0120not",
+      "shap_value": 0.012406249999999995,
+      "impact": "positive"
+    },
+    {
+      "feature": " \u0120but",
+      "shap_value": 0.012406249999999995,
+      "impact": "positive"
+    },
+    {
+      "feature": " \u012018",
+      "shap_value": 0.010241071428571428,
+      "impact": "positive"
+    }
+  ],
+  "explanation_method": "shap",
+  "visualization_files": {
+    "html": "outputs/shap_explanation_unknown_claim.html",
+    "image": "outputs/shap_explanation_unknown_claim.png"
+  }
+}

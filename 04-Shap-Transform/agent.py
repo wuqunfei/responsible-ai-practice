@@ -44,35 +44,83 @@ class ClaimProcessingAgent:
         workflow = StateGraph(ClaimState)
 
         # Add nodes
-        workflow.add_node("preprocess", self.preprocess_claim)
-        workflow.add_node("classify", self.classify_claim)
-        workflow.add_node("explain", self.explain_decision)
-        workflow.add_node("human_review", self.request_human_review)
-        workflow.add_node("finalize", self.finalize_decision)
+        workflow.add_node("preprocess_claim", self.preprocess_claim)
+        workflow.add_node("classify_claim", self.classify_claim)
+        workflow.add_node("explain_claim", self.explain_claim)
+        workflow.add_node("request_human_review", self.request_human_review)
+        workflow.add_node("finalize_claim", self.finalize_claim)
 
         # Define edges
-        workflow.set_entry_point("preprocess")
-        workflow.add_edge("preprocess", "classify")
-        workflow.add_edge("classify", "explain")
+        workflow.set_entry_point("preprocess_claim")
+        workflow.add_edge("preprocess_claim", "classify_claim")
+        workflow.add_edge("classify_claim", "explain_claim")
 
         # Conditional routing based on confidence
         workflow.add_conditional_edges(
-            "explain",
+            "explain_claim",
             self.check_confidence_threshold,
             {
-                "human_review": "human_review",
-                "finalize": "finalize"
+                "request_human_review": "request_human_review",
+                "finalize_claim": "finalize_claim"
             }
         )
 
-        workflow.add_edge("human_review", END)
-        workflow.add_edge("finalize", END)
+        workflow.add_edge("request_human_review", END)
+        workflow.add_edge("finalize_claim", END)
 
         return workflow.compile()
+
+    def _parse_claim_text(self, claim_text: str) -> dict:
+        """Parse claim text to extract structured fields"""
+        parsed_data = {}
+        
+        # Parse each line
+        for line in claim_text.strip().split('\n'):
+            if ':' in line:
+                key, value = line.split(':', 1)
+                key = key.strip()
+                value = value.strip()
+                
+                if key == 'Claim ID':
+                    parsed_data['id'] = value
+                elif key == 'Policy Type':
+                    parsed_data['policy_type'] = value
+                elif key == 'Claim Amount':
+                    # Remove $ and commas, convert to float
+                    amount_str = value.replace('$', '').replace(',', '')
+                    try:
+                        parsed_data['amount'] = float(amount_str)
+                    except ValueError:
+                        parsed_data['amount'] = 0.0
+                elif key == 'Description':
+                    parsed_data['description'] = value
+                elif key == 'Medical Reports':
+                    parsed_data['medical_reports'] = value
+                elif key == 'Previous Claims':
+                    try:
+                        parsed_data['previous_claims'] = int(value)
+                    except ValueError:
+                        parsed_data['previous_claims'] = 0
+                elif key == 'Policy Duration':
+                    # Extract months number
+                    months_str = value.replace('months', '').strip()
+                    try:
+                        parsed_data['policy_duration_months'] = int(months_str)
+                    except ValueError:
+                        parsed_data['policy_duration_months'] = 0
+        
+        return parsed_data
 
     def preprocess_claim(self, state: ClaimState) -> ClaimState:
         """Extract and format claim information"""
         claim_data = state['claim_data']
+
+        # Check if we have structured fields or need to parse from text
+        if 'text' in claim_data and not all(key in claim_data for key in ['policy_type', 'amount', 'description']):
+            # Parse from text field
+            parsed_fields = self._parse_claim_text(claim_data['text'])
+            claim_data.update(parsed_fields)
+            logger.info(f"✓ Parsed claim text for structured fields")
 
         # Format claim as text for model
         claim_text = f"""
@@ -115,7 +163,7 @@ Policy Duration: {claim_data.get('policy_duration_months', 0)} months
         logger.success(f"✓ Classification: {prediction} with {confidence:.1%} confidence")
         return state
 
-    def explain_decision(self, state: ClaimState) -> ClaimState:
+    def explain_claim(self, state: ClaimState) -> ClaimState:
         """Generate explanation using SHAP or simple rules"""
         claim_text = state['claim_text']
         claim_id = state['claim_data'].get('claim_id', 'unknown_claim')
@@ -168,11 +216,11 @@ Policy Duration: {claim_data.get('policy_duration_months', 0)} months
         logger.success("✓ Generated explanation")
         return state
 
-    def check_confidence_threshold(self, state: ClaimState) -> Literal["human_review", "finalize"]:
+    def check_confidence_threshold(self, state: ClaimState) -> Literal["request_human_review", "finalize_claim"]:
         """Route based on confidence level"""
         if state['confidence'] < self.confidence_threshold:
-            return "human_review"
-        return "finalize"
+            return "request_human_review"
+        return "finalize_claim"
 
     def request_human_review(self, state: ClaimState) -> ClaimState:
         """Flag for human review when confidence is low"""
@@ -190,7 +238,7 @@ Policy Duration: {claim_data.get('policy_duration_months', 0)} months
         logger.info(f"DEBUG: Status set to: {state['status']}")
         return state
 
-    def finalize_decision(self, state: ClaimState) -> ClaimState:
+    def finalize_claim(self, state: ClaimState) -> ClaimState:
         """Finalize the claim decision"""
         state['requires_human_review'] = False
         state['messages'].append({

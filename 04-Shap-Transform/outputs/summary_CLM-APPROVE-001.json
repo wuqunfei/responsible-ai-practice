@@ -1,0 +1,91 @@
+{
+  "claim_id": "CLM-APPROVE-001",
+  "prediction": "APPROVED",
+  "confidence": 0.95,
+  "requires_human_review": false,
+  "status": "APPROVED",
+  "timestamp": "2025-11-19T00:34:25.481444",
+  "reasoning": "Decision: APPROVED\nConfidence: 95.0%\nExplanation Method: shap\n\nKey factors influencing this decision:\n  1. ' \u010a' (impact: 0.023, supporting approval)\n  2. ' Medical' (impact: 0.023, supporting approval)\n  3. ' \u0120room' (impact: 0.023, supporting approval)\n  4. ' \u0120emergency' (impact: 0.023, supporting approval)\n  5. ' 001' (impact: 0.023, supporting rejection)\n  6. ' \u010a' (impact: 0.023, supporting rejection)\n  7. ' \u0120necessary' (impact: 0.022, supporting approval)\n  8. ' \u0120emergency' (impact: 0.022, supporting approval)\n\n\ud83d\udcca SHAP visualization saved to: outputs/shap_explanation_unknown_claim.html\n\ud83d\udcc8 SHAP chart saved to: outputs/shap_explanation_unknown_claim.png",
+  "top_features": [
+    {
+      "feature": " \u010a",
+      "shap_value": 0.02344531250000001,
+      "impact": "positive"
+    },
+    {
+      "feature": " Medical",
+      "shap_value": 0.02344531250000001,
+      "impact": "positive"
+    },
+    {
+      "feature": " \u0120room",
+      "shap_value": 0.02344531250000001,
+      "impact": "positive"
+    },
+    {
+      "feature": " \u0120emergency",
+      "shap_value": 0.02344531250000001,
+      "impact": "positive"
+    },
+    {
+      "feature": " 001",
+      "shap_value": -0.0234375,
+      "impact": "negative"
+    },
+    {
+      "feature": " \u010a",
+      "shap_value": -0.0234375,
+      "impact": "negative"
+    },
+    {
+      "feature": " \u0120necessary",
+      "shap_value": 0.021665307971014496,
+      "impact": "positive"
+    },
+    {
+      "feature": " \u0120emergency",
+      "shap_value": 0.021665307971014496,
+      "impact": "positive"
+    },
+    {
+      "feature": " \u0120procedure",
+      "shap_value": 0.021665307971014496,
+      "impact": "positive"
+    },
+    {
+      "feature": " \u0120hospital",
+      "shap_value": 0.013617187499999994,
+      "impact": "positive"
+    },
+    {
+      "feature": " is",
+      "shap_value": 0.013617187499999994,
+      "impact": "positive"
+    },
+    {
+      "feature": " icit",
+      "shap_value": 0.013617187499999994,
+      "impact": "positive"
+    },
+    {
+      "feature": " \u0120at",
+      "shap_value": 0.013617187499999994,
+      "impact": "positive"
+    },
+    {
+      "feature": " \u0120surgery",
+      "shap_value": 0.011968749999999998,
+      "impact": "positive"
+    },
+    {
+      "feature": " \u0120for",
+      "shap_value": 0.011968749999999998,
+      "impact": "positive"
+    }
+  ],
+  "explanation_method": "shap",
+  "visualization_files": {
+    "html": "outputs/shap_explanation_unknown_claim.html",
+    "image": "outputs/shap_explanation_unknown_claim.png"
+  }
+}

@@ -1,0 +1,91 @@
+{
+  "claim_id": "CLM-REJECT-001",
+  "prediction": "APPROVED",
+  "confidence": 0.738,
+  "requires_human_review": false,
+  "status": "APPROVED",
+  "timestamp": "2025-11-19T00:35:31.663786",
+  "reasoning": "Decision: APPROVED\nConfidence: 73.8%\nExplanation Method: shap\n\nKey factors influencing this decision:\n  1. ' ,' (impact: 0.067, supporting approval)\n  2. ' 000' (impact: 0.053, supporting rejection)\n  3. ' \u0120purposes' (impact: 0.013, supporting approval)\n  4. ' ,' (impact: 0.008, supporting approval)\n  5. ' :' (impact: 0.007, supporting rejection)\n  6. ' \u0120Claims' (impact: 0.007, supporting rejection)\n  7. ' \u0120medical' (impact: 0.007, supporting approval)\n  8. ' \u0120for' (impact: 0.007, supporting approval)\n\n\ud83d\udcca SHAP visualization saved to: outputs/shap_explanation_unknown_claim.html\n\ud83d\udcc8 SHAP chart saved to: outputs/shap_explanation_unknown_claim.png",
+  "top_features": [
+    {
+      "feature": " ,",
+      "shap_value": 0.06685714285714286,
+      "impact": "positive"
+    },
+    {
+      "feature": " 000",
+      "shap_value": -0.05250000000000002,
+      "impact": "negative"
+    },
+    {
+      "feature": " \u0120purposes",
+      "shap_value": 0.012638392857142857,
+      "impact": "positive"
+    },
+    {
+      "feature": " ,",
+      "shap_value": 0.008300595238095242,
+      "impact": "positive"
+    },
+    {
+      "feature": " :",
+      "shap_value": -0.007095982142857145,
+      "impact": "negative"
+    },
+    {
+      "feature": " \u0120Claims",
+      "shap_value": -0.007095982142857145,
+      "impact": "negative"
+    },
+    {
+      "feature": " \u0120medical",
+      "shap_value": 0.006810267857142853,
+      "impact": "positive"
+    },
+    {
+      "feature": " \u0120for",
+      "shap_value": 0.006810267857142853,
+      "impact": "positive"
+    },
+    {
+      "feature": " \u0120treatment",
+      "shap_value": 0.006810267857142853,
+      "impact": "positive"
+    },
+    {
+      "feature": " \u0120unnecessary",
+      "shap_value": 0.006810267857142853,
+      "impact": "positive"
+    },
+    {
+      "feature": " \u0120for",
+      "shap_value": 0.006779017857142857,
+      "impact": "positive"
+    },
+    {
+      "feature": " \u0120aesthetic",
+      "shap_value": 0.006779017857142857,
+      "impact": "positive"
+    },
+    {
+      "feature": " \u0120request",
+      "shap_value": 0.005857142857142858,
+      "impact": "positive"
+    },
+    {
+      "feature": " \u0120patient",
+      "shap_value": 0.005857142857142858,
+      "impact": "positive"
+    },
+    {
+      "feature": " emer",
+      "shap_value": 0.0041287202380952395,
+      "impact": "positive"
+    }
+  ],
+  "explanation_method": "shap",
+  "visualization_files": {
+    "html": "outputs/shap_explanation_unknown_claim.html",
+    "image": "outputs/shap_explanation_unknown_claim.png"
+  }
+}

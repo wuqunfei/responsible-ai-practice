@@ -1,5 +1,5 @@
 {
-    "id": "CLM-REJECT-001",
-    "name": "High Rejection Case",
-    "text": "Claim ID: CLM-REJECT-001\nPolicy Type: Health Insurance\nClaim Amount: $250,000\nDescription: Elective cosmetic surgery for facial enhancement\nMedical Reports: Non-emergency procedure, patient request for aesthetic purposes, unnecessary for medical treatment\nPrevious Claims: 8\nPolicy Duration: 3 months\nTreatment: Cosmetic facial reconstruction, not medically required"
+  "id": "CLM-REJECT-001",
+  "name": "High Rejection Case",
+  "text": "Claim ID: CLM-REJECT-001\nPolicy Type: Health Insurance\nClaim Amount: $250,000\nDescription: Elective cosmetic surgery for facial enhancement\nMedical Reports: Non-emergency procedure, patient request for aesthetic purposes, unnecessary for medical treatment\nPrevious Claims: 8\nPolicy Duration: 3 months\nTreatment: Cosmetic facial reconstruction, not medically required"
 }
